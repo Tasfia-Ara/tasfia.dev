@@ -74,14 +74,10 @@ const Hero = ({ onExplore }: { onExplore: () => void }) => (
       <div className="w-full md:w-[400px] flex-shrink-0 animate-in slide-in-from-right-8 duration-700">
         <div className="profile-frame rounded-3xl rotate-2 group hover:rotate-0 transition-transform duration-700 shadow-2xl">
           <div className="w-full aspect-square bg-zinc-50 rounded-2xl overflow-hidden relative">
-            <img 
-              src="profile.jpg" 
-              alt="Tasfia Ara Profile" 
+            <img
+              src="/profile.jpg"
+              alt="Tasfia Ara Profile"
               className="w-full h-full object-cover grayscale brightness-105 group-hover:grayscale-0 transition-all duration-1000"
-              onError={(e) => {
-                // Fallback if local image is not found
-                // e.currentTarget.src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1000&auto=format&fit=crop";
-              }}
             />
             <div className="absolute inset-0 bg-indigo-500/5 mix-blend-multiply"></div>
           </div>
