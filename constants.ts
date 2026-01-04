@@ -54,7 +54,7 @@ export const EXPERIENCES: Experience[] = [
   },
   {
     id: 'mit-rai',
-    company: 'MIT RAI',
+    company: 'MIT RAISE',
     role: 'Fullstack App Development Mentor',
     period: 'Jun 2025 — Aug 2025',
     description: [
@@ -67,7 +67,7 @@ export const EXPERIENCES: Experience[] = [
   {
     id: 'microsoft',
     company: 'Microsoft',
-    role: 'Software Engineering Intern',
+    role: 'Software Engineering (SWE) Intern',
     period: 'May 2025 — Jun 2025',
     description: [
       'Accepted into the Microsoft Copilot team in Redmond.',
@@ -91,7 +91,7 @@ export const EXPERIENCES: Experience[] = [
   {
     id: 'headstarter',
     company: 'Headstarter',
-    role: 'Software Engineering Fellow',
+    role: 'Software Engineering Intern',
     period: 'Jul 2024 — Sep 2024',
     description: [
       'Built and deployed 5 AI projects in 7 weeks, reaching 1,000+ users.',
