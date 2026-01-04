@@ -212,7 +212,7 @@ const ExplorationView = () => {
                 <ul className="space-y-4">
                   {exp.description.map((item, i) => (
                     <li key={i} className="text-zinc-500 text-sm leading-relaxed flex gap-4">
-                      <span className="text-indigo-300 mono font-bold">>></span>
+                      <span className="text-indigo-300 mono font-bold">{'>>>'}</span>
                       {item}
                     </li>
                   ))}
