@@ -70,8 +70,9 @@ const Hero = ({ onExplore }: { onExplore: () => void }) => (
           </div>
         </div>
       </div>
-      
-      <div className="w-full md:w-[400px] flex-shrink-0 animate-in slide-in-from-right-8 duration-700">
+
+      {/* Profile picture section - commented out temporarily */}
+      {/* <div className="w-full md:w-[400px] flex-shrink-0 animate-in slide-in-from-right-8 duration-700">
         <div className="profile-frame rounded-3xl rotate-2 group hover:rotate-0 transition-transform duration-700 shadow-2xl">
           <div className="w-full aspect-square bg-zinc-50 rounded-2xl overflow-hidden relative">
             <img
@@ -86,7 +87,7 @@ const Hero = ({ onExplore }: { onExplore: () => void }) => (
             <span>BUILD_V3</span>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   </section>
 );
