@@ -3,41 +3,16 @@ import { createRoot } from 'react-dom/client';
 import {
   ArrowDown,
   ArrowUpRight,
-  Boxes,
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  FileText,
   Github,
   Linkedin,
   Mail,
   Sparkles,
 } from 'lucide-react';
 import './styles.css';
-
-const TRACE_STEPS = [
-  {
-    label: '01 / ingest',
-    title: 'Read the repository',
-    detail: 'Snapshot the codebase, normalize source files, and establish a clean boundary for everything downstream.',
-  },
-  {
-    label: '02 / map',
-    title: 'Build useful context',
-    detail: 'Map modules and dependencies before chunking so the model sees structure—not a bag of unrelated files.',
-  },
-  {
-    label: '03 / queue',
-    title: 'Control the work',
-    detail: 'Push independent jobs through workers with explicit concurrency, retry, and backpressure decisions.',
-  },
-  {
-    label: '04 / synthesize',
-    title: 'Generate the guide',
-    detail: 'Turn model output into concise text and voice summaries while preserving links back to the source.',
-  },
-  {
-    label: '05 / deliver',
-    title: 'Meet the developer',
-    detail: 'Deliver the result through a Kotlin Multiplatform experience designed for learning away from the desk.',
-  },
-];
 
 const HERO_WORDS = ['systems', 'models', 'communities'];
 
@@ -54,6 +29,74 @@ type ActivityDay = GitHubContribution & {
 const GITHUB_ACTIVITY_URL = 'https://github-contributions-api.jogruber.de/v4/Tasfia-Ara?y=last';
 const ACTIVITY_WEEKS = 52;
 const ACTIVITY_DAYS = 7;
+const LANGUAGES = [
+  'Python',
+  'Java',
+  'JavaScript',
+  'TypeScript',
+  'Kotlin',
+  'Swift',
+  'Ruby',
+  'SQL',
+  'C',
+  'C++',
+  'Verilog',
+  'Solidity',
+  'HTML',
+  'CSS/SCSS',
+  'Shell/Bash',
+];
+const SYSTEMS = [
+  'Distributed systems',
+  'ML infrastructure',
+  'Data + ETL pipelines',
+  'Ranking + retrieval',
+  'Recommender systems',
+  'Prediction systems',
+  'Real-time processing',
+  'Systems software',
+  'Accelerated computing',
+  'Performance engineering',
+];
+const RESPIRA_GALLERY = [
+  {
+    src: '/tasfia.dev/projects/respiracheck/team.jpg',
+    alt: 'Tasfia and her RespiraCheck teammates presenting at CUCAI 2025',
+    caption: 'The RespiraCheck team · CUCAI 2025',
+  },
+  {
+    src: '/tasfia.dev/projects/respiracheck/poster.jpg',
+    alt: 'RespiraCheck research poster presented at CUCAI 2025',
+    caption: 'Our research poster',
+  },
+  {
+    src: '/tasfia.dev/projects/respiracheck/cucai-2025.jpg',
+    alt: 'I attended CUCAI 2025 conference graphic',
+    caption: 'Canadian Undergraduate Conference in AI · 2025',
+  },
+];
+const PERSONAL_PHOTOS = [
+  {
+    src: '/tasfia.dev/about/hike.jpeg',
+    alt: 'Tasfia smiling during an autumn hike',
+  },
+  {
+    src: '/tasfia.dev/about/food.jpeg',
+    alt: 'A favourite noodle meal',
+  },
+  {
+    src: '/tasfia.dev/about/running.jpeg',
+    alt: 'Tasfia after crossing the Toronto Marathon finish line',
+  },
+  {
+    src: '/tasfia.dev/about/sunset.jpeg',
+    alt: 'A pink sunset reflected over the Toronto waterfront',
+  },
+  {
+    src: '/tasfia.dev/about/robot-car.jpeg',
+    alt: 'A small robot car being assembled on a workbench',
+  },
+];
 
 const activityDateFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -121,29 +164,23 @@ const LOG_ENTRIES = [
     logo: '/tasfia.dev/logos/amazon.png',
     logoAlt: 'Amazon',
     tags: ['Generative AI', 'Ads infrastructure'],
-    moments: [
-      { kind: 'photo', title: 'Amazon Ads', caption: 'Starting September 2026', placeholder: 'Coming Soon!' },
-      { kind: 'photo', title: 'Team moments', caption: 'Photos coming this fall', placeholder: 'Coming Soon!' },
-      { kind: 'video', title: 'Internship reel', caption: 'A future video slot', placeholder: 'Coming Soon!' },
-    ],
   },
   {
     type: 'ENGINEERING',
     company: 'Shopify',
     period: 'May–August 2026',
     role: 'Software Engineering Intern · Merchant Marketing, Ads Experience',
-    copy: 'Worked on the infrastructure behind Shopify’s Ads billing and campaign spend systems, with a focus on reliability, recovery, and real-time processing.',
+    copy: (
+      <>Designed and deployed a <strong>fault-tolerant production workflow</strong> that translated live order and attribution events into <strong>deterministic billing logic</strong>, recovering <strong>$1.4M</strong> across <strong>48,000+ orders</strong> during production incidents.</>
+    ),
     logo: '/tasfia.dev/logos/shopify.png',
     logoAlt: 'Shopify',
     tags: ['Kafka', 'Reliability', 'Billing'],
     bullets: [
-      'Built fault-tolerant order reprocessing that recovers 10,000–100,000+ orders per cycle and protects an estimated $10M+ in merchant revenue.',
-      'Shipped Kafka and Sidekiq pipelines processing 10M+ daily billing and attribution events at approximately one-second end-to-end latency.',
-    ],
-    moments: [
-      { kind: 'photo', title: 'Team moments', caption: 'Shopify · summer 2026' },
-      { kind: 'photo', title: 'Shopify Summit', caption: 'Learning with builders' },
-      { kind: 'video', title: 'Internship reel', caption: 'A future video slot' },
+      <>Built the system to support incident recovery windows spanning <strong>1–7 days</strong>, representing approximately <strong>48,000–336,000 orders</strong> at observed volume.</>,
+      <>Optimized <strong>high-throughput, low-latency data pipelines</strong> across <strong>Kafka, Sidekiq, and SQL-backed Vitess/GlobalDB</strong>, processing <strong>10M+ daily billing and attribution events</strong> with approximately <strong>one-second end-to-end latency</strong>.</>,
+      <>Engineered <strong>idempotent, exactly-once transaction processing</strong> with retry semantics, dead-letter handling, and automated reconciliation checks, maintaining <strong>financial correctness</strong> under live production traffic while preventing duplicate charges and revenue leakage.</>,
+      <>Wrote <strong>automated unit and integration tests</strong> and improved <strong>monitoring</strong>.</>,
     ],
   },
   {
@@ -151,40 +188,16 @@ const LOG_ENTRIES = [
     company: 'Claude Builder Club @ UofT',
     period: 'September–December 2025',
     role: 'President & Claude Ambassador · Partnered with Anthropic',
-    copy: 'Founded and led U of T’s first Claude Builder Club, partnering with Anthropic to grow a hands-on AI builder community on campus.',
+    copy: (
+      <>Founded and led <strong>U of T’s first Claude Builder Club</strong>, partnering with <strong>Anthropic</strong> to grow a hands-on <strong>AI builder community</strong> on campus.</>
+    ),
     logo: '/tasfia.dev/logos/anthropic.png',
     logoAlt: 'Anthropic',
     tags: ['Community', 'Workshops', 'AI builders'],
     bullets: [
-      'Grew a 300+ member community through hackathons, engineering challenges, and workshops across AI, full-stack development, and applied ML.',
-      'Designed training in prompt engineering, RAG, responsible AI evaluation, and privacy-aware deployment while leading mentorship and code reviews.',
+      <>Grew a <strong>300+ member community</strong> through <strong>hackathons, engineering challenges, and workshops</strong> across AI, full-stack development, and applied ML.</>,
+      <>Designed training in <strong>prompt engineering, RAG, responsible AI evaluation, and privacy-aware deployment</strong> while leading <strong>mentorship and code reviews</strong>.</>,
     ],
-    moments: [
-      { kind: 'photo', title: 'Builder nights', caption: 'Claude Builder Club @ UofT' },
-      { kind: 'photo', title: 'Workshop day', caption: 'Building with Claude' },
-      { kind: 'video', title: 'Hackathon recap', caption: 'A future video slot' },
-    ],
-  },
-];
-
-const TOOLKIT_GROUPS = [
-  {
-    index: '01',
-    title: 'Backend + distributed systems',
-    copy: 'The machinery I use to move data safely and keep services dependable.',
-    tools: ['Ruby on Rails', 'Kafka', 'Sidekiq', 'GraphQL', 'Vitess', 'PostgreSQL'],
-  },
-  {
-    index: '02',
-    title: 'ML + ranking',
-    copy: 'The modeling layer behind recommendations, intelligent products, and experiments.',
-    tools: ['Python', 'PyTorch', 'TensorFlow', 'Recommender systems', 'A/B testing', 'LLMs + RAG'],
-  },
-  {
-    index: '03',
-    title: 'Infrastructure + product',
-    copy: 'The tools I reach for to ship, observe, and iterate on real products.',
-    tools: ['Docker', 'AWS', 'GCP', 'CI/CD', 'TypeScript', 'React'],
   },
 ];
 
@@ -199,15 +212,35 @@ function Header() {
         </span>
       </a>
       <nav className="main-nav" aria-label="Primary navigation">
+        <a href="#top">Home</a>
+        <a href="#snapshot">Dev. Snapshot</a>
         <a href="#logs">Experience</a>
-        <a href="#systems">Systems</a>
-        <a href="#toolkit">Toolkit</a>
-        <a href="#personal">Personal</a>
+        <a href="#systems">Projects</a>
+        <a href="#personal">About Me</a>
       </nav>
       <a className="header-link" href="https://github.com/Tasfia-Ara" target="_blank" rel="noreferrer">
         GitHub <ArrowUpRight size={14} aria-hidden="true" />
       </a>
     </header>
+  );
+}
+
+function InterestCarousel() {
+  return (
+    <aside className="interest-strip" aria-label="Areas Tasfia is interested in">
+      <div className="system-focus-line section-shell">
+        <span className="system-focus-label">INTERESTED IN</span>
+        <div className="system-carousel" aria-label={`Interested in: ${SYSTEMS.join(', ')}`}>
+          <div className="system-carousel-track">
+            {[false, true].map((duplicate) => (
+              <div className="system-carousel-group" aria-hidden={duplicate || undefined} key={duplicate ? 'duplicate' : 'primary'}>
+                {SYSTEMS.map((system) => <span className="system-carousel-item" key={system}>{system}</span>)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </aside>
   );
 }
 
@@ -234,7 +267,7 @@ function Hero() {
   return (
     <section className="hero section-shell" id="top">
       <div className="hero-copy">
-        <div className="eyebrow"><span className="status-dot" /> Status: Seeking Summer 2027 Internships</div>
+        <div className="eyebrow hero-status"><span className="status-dot" /> Status: Seeking Summer 2027 Internships</div>
         <h1 className="hero-title">
           <span className="hero-greeting">Hi, I’m Tasfia.</span>
           <span className="hero-build-line">
@@ -288,61 +321,65 @@ function Hero() {
   );
 }
 
-function SignalStrip() {
+function RollingNumber({ value, suffix = '', active, delay = 0 }: { value: string; suffix?: string; active: boolean; delay?: number }) {
   return (
-    <section className="signal-strip section-shell" aria-label="Current signals">
-      <div className="signal-label">CURRENT<br />SIGNALS</div>
-      <div className="signal-item"><small>building</small><strong>GitWispr</strong></div>
-      <div className="signal-item"><small>exploring</small><strong>AI infrastructure</strong></div>
-      <div className="signal-item"><small>organizing</small><strong>Claude Builder Club</strong></div>
-      <div className="signal-item"><small>default mode</small><strong>curious, then methodical</strong></div>
-    </section>
-  );
-}
-
-function TraceDemo() {
-  const [activeStep, setActiveStep] = useState(2);
-  const active = TRACE_STEPS[activeStep];
-
-  return (
-    <div className="trace-panel">
-      <div className="panel-chrome">
-        <span><span className="status-dot" /> request trace / gitwispr</span>
-        <span>prototype topology</span>
-      </div>
-      <div className="trace-map" aria-label="Interactive GitWispr request trace">
-        {TRACE_STEPS.map((step, index) => (
-          <React.Fragment key={step.label}>
-            <button
-              className={`trace-node ${index === activeStep ? 'is-active' : ''} ${index < activeStep ? 'is-complete' : ''}`}
-              type="button"
-              onClick={() => setActiveStep(index)}
-              aria-pressed={index === activeStep}
+    <span
+      className={`rolling-number ${active ? 'is-spinning' : ''}`}
+      role="img"
+      aria-label={`${value}${suffix}`}
+      style={{ '--metric-delay': `${delay}ms` } as React.CSSProperties}
+    >
+      <span className="rolling-number-inner" aria-hidden="true">
+        {value.split('').map((digit, index) => (
+          <span className="rolling-digit" key={`${digit}-${index}`}>
+            <span
+              className="rolling-reel"
+              style={{
+                '--roll-distance': `-${Number(digit) + 10}em`,
+                '--roll-delay': `${index * 70}ms`,
+              } as React.CSSProperties}
             >
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              {step.label.split(' / ')[1]}
-            </button>
-            {index < TRACE_STEPS.length - 1 && <span className={`trace-line ${index < activeStep ? 'is-complete' : ''}`} aria-hidden="true" />}
-          </React.Fragment>
+              {Array.from({ length: 20 }, (_, reelIndex) => <span key={reelIndex}>{reelIndex % 10}</span>)}
+            </span>
+          </span>
         ))}
-      </div>
-      <div className="trace-readout" aria-live="polite">
-        <span>{active.label}</span>
-        <div>
-          <h3>{active.title}</h3>
-          <p>{active.detail}</p>
-        </div>
-      </div>
-    </div>
+        {suffix && <span className="rolling-suffix">{suffix}</span>}
+      </span>
+    </span>
   );
 }
 
 function GitHubActivity() {
   const [contributions, setContributions] = useState<GitHubContribution[]>([]);
   const [activityLoaded, setActivityLoaded] = useState(false);
+  const [statsVisible, setStatsVisible] = useState(false);
+  const activityRef = useRef<HTMLDivElement>(null);
 
   const activityWeeks = useMemo(() => buildActivityWeeks(contributions), [contributions]);
   const activityMonths = useMemo(() => buildMonthLabels(activityWeeks), [activityWeeks]);
+
+  useEffect(() => {
+    const activity = activityRef.current;
+    if (!activity) return undefined;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setStatsVisible(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStatsVisible(true);
+          observer.unobserve(activity);
+        }
+      },
+      { threshold: 0.25 },
+    );
+
+    observer.observe(activity);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -366,15 +403,48 @@ function GitHubActivity() {
   }, []);
 
   return (
-    <div className="github-activity project-activity">
-      <a
-        className="github-activity-link"
-        href="https://github.com/Tasfia-Ara"
-        target="_blank"
-        rel="noreferrer"
-      >
-        View GitHub Profile <ArrowUpRight size={14} aria-hidden="true" />
-      </a>
+    <div className="github-activity project-activity" ref={activityRef}>
+      <div className="developer-stats">
+        <a className="dev-stat" href="https://github.com/Tasfia-Ara?tab=repositories" target="_blank" rel="noreferrer">
+          <RollingNumber value="30" active={statsVisible} delay={0} />
+          <span className="stat-label">Public repos</span>
+          <small>on GitHub</small>
+        </a>
+        <div className="dev-stat">
+          <RollingNumber value="14" suffix="+" active={statsVisible} delay={1050} />
+          <span className="stat-label">Collaborators</span>
+          <small>across public repos</small>
+        </div>
+        <div className="dev-stat">
+          <RollingNumber value="4" active={statsVisible} delay={2100} />
+          <span className="stat-label">Hackathons</span>
+          <small>
+            on <a className="stat-source-link" href="https://devpost.com/Tasfia-Ara/challenges" target="_blank" rel="noreferrer">
+              Devpost <ArrowUpRight size={10} aria-hidden="true" />
+            </a>
+          </small>
+        </div>
+        <div className="dev-stat">
+          <span className="stat-number-with-crown">
+            <Crown className="stat-crown" size={22} strokeWidth={1.7} aria-hidden="true" />
+            <RollingNumber value="1" active={statsVisible} delay={3150} />
+          </span>
+          <span className="stat-label">Hackathon wins</span>
+          <small>Toronto Bioinformatics · 2024</small>
+        </div>
+      </div>
+
+      <div className="activity-toolbar">
+        <span>PUBLIC CONTRIBUTIONS · LAST 52 WEEKS</span>
+        <a
+          className="github-activity-link"
+          href="https://github.com/Tasfia-Ara"
+          target="_blank"
+          rel="noreferrer"
+        >
+          View GitHub Profile <ArrowUpRight size={14} aria-hidden="true" />
+        </a>
+      </div>
       <div className="activity-map">
         <div className="activity-scroll">
           <div className={`activity-graph ${activityLoaded ? 'is-loaded' : 'is-loading'}`}>
@@ -415,102 +485,182 @@ function GitHubActivity() {
           </div>
         </div>
       </div>
+      <div className="language-carousel-line">
+        <span className="language-carousel-label">LANGUAGES I BUILD WITH</span>
+        <div className="language-carousel" aria-label={`Languages I build with: ${LANGUAGES.join(', ')}`}>
+          <div className="language-carousel-track">
+            {[false, true].map((duplicate) => (
+              <div className="language-carousel-group" aria-hidden={duplicate || undefined} key={duplicate ? 'duplicate' : 'primary'}>
+                {LANGUAGES.map((language) => (
+                  <span className="language-carousel-item" key={language}>{language}</span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
+  );
+}
+
+function RespiraGallery() {
+  const [activeImage, setActiveImage] = useState(0);
+  const image = RESPIRA_GALLERY[activeImage];
+
+  const showPreviousImage = () => {
+    setActiveImage((current) => (current - 1 + RESPIRA_GALLERY.length) % RESPIRA_GALLERY.length);
+  };
+
+  const showNextImage = () => {
+    setActiveImage((current) => (current + 1) % RESPIRA_GALLERY.length);
+  };
+
+  return (
+    <figure className="respira-gallery">
+      <div className={`respira-gallery-frame ${activeImage === 2 ? 'has-square-image' : ''}`}>
+        {activeImage === 2 && (
+          <span
+            className="respira-gallery-backdrop"
+            style={{ backgroundImage: `url(${image.src})` }}
+            aria-hidden="true"
+          />
+        )}
+        <img className="respira-gallery-image" key={image.src} src={image.src} alt={image.alt} />
+        <button
+          className="respira-gallery-control respira-gallery-previous"
+          type="button"
+          onClick={showPreviousImage}
+          aria-label={`Show previous RespiraCheck image. Currently showing ${activeImage + 1} of ${RESPIRA_GALLERY.length}`}
+        >
+          <ChevronLeft size={18} strokeWidth={1.8} aria-hidden="true" />
+        </button>
+        <button
+          className="respira-gallery-control respira-gallery-next"
+          type="button"
+          onClick={showNextImage}
+          aria-label={`Show next RespiraCheck image. Currently showing ${activeImage + 1} of ${RESPIRA_GALLERY.length}`}
+        >
+          <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" />
+        </button>
+      </div>
+      <figcaption aria-live="polite">
+        <span>{String(activeImage + 1).padStart(2, '0')} / {String(RESPIRA_GALLERY.length).padStart(2, '0')}</span>
+        {image.caption}
+      </figcaption>
+    </figure>
+  );
+}
+
+function DeveloperSnapshot() {
+  return (
+    <section className="developer-snapshot section-shell section-block" id="snapshot">
+      <div className="experience-header developer-snapshot-header">
+        <h2>Developer Snapshot</h2>
+      </div>
+      <GitHubActivity />
+    </section>
   );
 }
 
 function Systems() {
   return (
     <section className="section-shell section-block" id="systems">
-      <div className="section-heading">
-        <div><span className="section-index">02</span><p>Selected systems</p></div>
-        <h2>Projects are easier to trust when you can see the decisions inside them.</h2>
+      <div className="experience-header project-section-header">
+        <h2>Projects I’ve worked on</h2>
       </div>
 
-      <GitHubActivity />
-
-      <article className="feature-system">
-        <div className="feature-copy">
-          <div className="project-kicker">FLAGSHIP SYSTEM · 2026</div>
-          <h3>GitWispr</h3>
-          <p className="project-lede">A cross-platform guide that turns unfamiliar repositories into digestible audio and text.</p>
-          <p>
-            The interesting problem isn’t only generation. It’s organizing context, coordinating concurrent work,
-            handling partial failure, and giving developers a result they can trace back to source.
-          </p>
-          <div className="tag-list">
-            <span>Kotlin Multiplatform</span><span>LLMs</span><span>Async work</span><span>Voice AI</span>
-          </div>
-          <a className="text-link" href="https://github.com/Tasfia-Ara/GitWispr" target="_blank" rel="noreferrer">
-            View GitWispr on GitHub <ArrowUpRight size={16} />
-          </a>
-        </div>
-        <TraceDemo />
-      </article>
-
-      <div className="supporting-grid">
-        <article className="project-card research-card">
-          <div className="project-visual waveform" role="img" aria-label="Layered waveform illustration for RespiraCheck">
-            <span className="wave wave-one" /><span className="wave wave-two" /><span className="wave wave-three" />
-            <span className="metric-chip">+20% model accuracy</span>
-          </div>
-          <div className="project-body">
-            <span className="project-kicker">RESEARCH PIPELINE</span>
+      <div className="project-showcase-list">
+        <article className="feature-system project-showcase">
+          <div className="feature-copy">
+            <div className="project-kicker">01 · APPLIED ML RESEARCH · 2025</div>
             <h3>RespiraCheck</h3>
-            <p>A CNN system for respiratory cough classification, tuned through structured experimentation and presented at CUCAI 2025.</p>
-            <div className="tag-list"><span>Python</span><span>ResNet</span><span>TensorFlow</span></div>
-            <span className="project-note">Presented at CUCAI 2025</span>
-          </div>
-        </article>
-
-        <article className="project-card product-card">
-          <a className="project-visual topology" href="https://github.com/Tasfia-Ara/CS-Help-AI-Chatbot" target="_blank" rel="noreferrer" aria-label="Open the AI CS Mentor repository">
-            <span className="topology-node node-user">student</span>
-            <span className="topology-node node-api">api</span>
-            <span className="topology-node node-model">model</span>
-            <span className="topology-node node-store">context</span>
-            <svg viewBox="0 0 600 260" role="img" aria-label="Service topology illustration">
-              <path d="M115 130 C190 130 205 74 285 74" />
-              <path d="M115 130 C190 130 205 190 285 190" />
-              <path d="M350 74 C430 74 430 130 500 130" />
-              <path d="M350 190 C430 190 430 130 500 130" />
-            </svg>
-            <span className="metric-chip">1,000+ users</span>
-          </a>
-          <div className="project-body">
-            <span className="project-kicker">PRODUCTION AI APP</span>
-            <h3>AI CS Mentor</h3>
-            <p>An AI learning experience deployed on AWS—an early lesson in APIs, product feedback, and operating beyond localhost.</p>
-            <div className="tag-list"><span>React</span><span>Node.js</span><span>OpenAI</span><span>AWS</span></div>
-            <a className="text-link" href="https://github.com/Tasfia-Ara/CS-Help-AI-Chatbot" target="_blank" rel="noreferrer">
-              Open the repository <ArrowUpRight size={16} />
-            </a>
-          </div>
-        </article>
-      </div>
-    </section>
-  );
-}
-
-function Toolkit() {
-  return (
-    <section className="toolkit section-shell" id="toolkit">
-      <div className="toolkit-intro">
-        <span className="section-index">03</span>
-        <h2>Tools I reach for.</h2>
-        <p>A practical map of the technologies I’ve used to build systems, models, and products.</p>
-      </div>
-      <div className="toolkit-list">
-        {TOOLKIT_GROUPS.map((group) => (
-          <div className="toolkit-group" key={group.index}>
-            <span>{group.index}</span>
-            <div>
-              <h3>{group.title}</h3>
-              <p>{group.copy}</p>
-              <div className="toolkit-tags">{group.tools.map((tool) => <span key={tool}>{tool}</span>)}</div>
+            <p className="project-lede">A cough-classification system exploring accessible, non-invasive respiratory screening.</p>
+            <p>
+              We transformed cough audio into Mel spectrograms and fine-tuned a ResNet-18 on a balanced dataset of
+              8,000 samples, pairing the model with a web experience for recording or uploading a cough.
+              <span className="project-presentation-line">
+                Presented at the Canadian Undergraduate Conference in AI (CUCAI) 2025.
+              </span>
+              <a className="project-publication-link" href="https://cucai.ca/2025/papers/e1lKWJ" target="_blank" rel="noreferrer">
+                Publication: CUCAI 2025 Conference Proceedings
+              </a>
+            </p>
+            <div className="tag-list">
+              <span>Python</span><span>ResNet-18</span><span>Audio ML</span><span>Next.js</span>
+            </div>
+            <div className="project-links">
+              <a className="text-link" href="https://github.com/Tasfia-Ara/RespiraCheck" target="_blank" rel="noreferrer">
+                View repository <ArrowUpRight size={16} />
+              </a>
+              <a className="text-link" href="https://respira-check-liard.vercel.app" target="_blank" rel="noreferrer">
+                Live demo <ArrowUpRight size={16} />
+              </a>
             </div>
           </div>
-        ))}
+          <RespiraGallery />
+        </article>
+
+        <article className="feature-system project-showcase rna-card">
+          <div className="feature-copy">
+            <div className="project-kicker">02 · BIOINFORMATICS + ML · 2024</div>
+            <h3>RNA Expression Predictor</h3>
+            <p>
+              Built an ML model that predicts mouse brain cell-type expression from RNA sequences using single-nucleus RNA-seq data.{' '}
+              <a className="project-description-link" href="https://www.linkedin.com/posts/tasfia-ara_toronto-bioinformatics-hackathon-activity-7249637214454779904-25RX" target="_blank" rel="noreferrer">
+                Won 1st place at the Toronto Bioinformatics Hackathon.
+              </a>
+            </p>
+            <div className="tag-list"><span>Python</span><span>scikit-learn</span><span>Genomics</span></div>
+            <div className="project-links">
+              <a className="text-link" href="https://github.com/hackbio-ca/rna-expression-from-sequence" target="_blank" rel="noreferrer">
+                View repository <ArrowUpRight size={16} />
+              </a>
+            </div>
+          </div>
+          <figure className="project-showcase-visual rna-project-visual">
+            <span
+              className="rna-project-backdrop"
+              style={{ backgroundImage: "url('/tasfia.dev/projects/rna-expression-predictor/hackathon-win.jpg')" }}
+              aria-hidden="true"
+            />
+            <img
+              className="rna-project-image"
+              src="/tasfia.dev/projects/rna-expression-predictor/hackathon-win.jpg"
+              alt="Tasfia and her teammates celebrating their first-place win at the Toronto Bioinformatics Hackathon"
+            />
+          </figure>
+        </article>
+
+        <article className="feature-system project-showcase vistex-card">
+          <div className="feature-copy">
+            <div className="project-kicker">03 · GENERATIVE AI TOOL · 2026</div>
+            <h3>VisTeX</h3>
+            <p>A VS Code extension that turns LaTeX equations into interactive 2D and 3D visualizations, with AI suggestions and source-linked previews.</p>
+            <div className="tag-list"><span>TypeScript</span><span>VS Code</span><span>Plotly</span></div>
+            <div className="project-links">
+              <a className="text-link" href="https://github.com/xiaotong-shen/VisTeX" target="_blank" rel="noreferrer">
+                View repository <ArrowUpRight size={16} />
+              </a>
+              <a className="text-link" href="https://devpost.com/software/vistex" target="_blank" rel="noreferrer">
+                Live demo <ArrowUpRight size={16} />
+              </a>
+            </div>
+          </div>
+          <figure className="project-showcase-visual project-photo-visual">
+            <span
+              className="project-photo-backdrop"
+              style={{ backgroundImage: "url('/tasfia.dev/projects/vistex/genai-genesis-team.webp')" }}
+              aria-hidden="true"
+            />
+            <img
+              className="project-photo-image"
+              src="/tasfia.dev/projects/vistex/genai-genesis-team.webp"
+              alt="Tasfia and the VisTeX team building together at GenAI Genesis 2026"
+            />
+            <span className="metric-chip">GenAI Genesis · 2026</span>
+          </figure>
+        </article>
+
       </div>
     </section>
   );
@@ -519,7 +669,6 @@ function Toolkit() {
 function ExperienceLog() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -555,20 +704,9 @@ function ExperienceLog() {
           <h2>What I’ve been up to</h2>
         </div>
 
-        <div className="log-list" onClick={() => setExpandedEntry(null)}>
-          {LOG_ENTRIES.map((entry) => {
-            const momentsId = `${entry.company.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-moments`;
-            const isExpanded = expandedEntry === entry.company;
-
-            return (
-            <article
-              className={`log-entry ${entry.moments ? 'has-moments' : ''} ${isExpanded ? 'is-expanded' : ''}`}
-              key={entry.company}
-              onClick={entry.moments ? (event) => {
-                event.stopPropagation();
-                setExpandedEntry(isExpanded ? null : entry.company);
-              } : undefined}
-            >
+        <div className="log-list">
+          {LOG_ENTRIES.map((entry) => (
+            <article className="log-entry" key={entry.company}>
               <div className="log-rail">
                 <div className="log-logo-tile">
                   <img className="log-logo" src={entry.logo} alt={`${entry.logoAlt} logo`} />
@@ -582,7 +720,7 @@ function ExperienceLog() {
                 <p className="log-role">{entry.role}</p>
                 {entry.bullets ? (
                   <ul className="log-bullets">
-                    {[entry.copy, ...entry.bullets].map((bullet) => <li key={bullet}>{bullet}</li>)}
+                    {[entry.copy, ...entry.bullets].map((bullet, index) => <li key={`${entry.company}-${index}`}>{bullet}</li>)}
                   </ul>
                 ) : (
                   <p>{entry.copy}</p>
@@ -590,58 +728,10 @@ function ExperienceLog() {
                 <div className="log-tags">{entry.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
                 <div className="log-meta-row">
                   <small className="log-label">{entry.type}</small>
-                  {entry.moments && (
-                    <button
-                      className="moments-hint"
-                      type="button"
-                      aria-expanded={isExpanded}
-                      aria-controls={momentsId}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setExpandedEntry(isExpanded ? null : entry.company);
-                      }}
-                    >
-                      <span className="moments-copy-desktop">
-                        {isExpanded ? 'Snapshots pinned · click to close' : `${entry.moments.length} snapshots · hover or click`}
-                      </span>
-                      <span className="moments-copy-mobile">
-                        {isExpanded ? 'Snapshots open · tap to close' : `${entry.moments.length} snapshots · tap to open`}
-                      </span>
-                    </button>
-                  )}
                 </div>
               </div>
-
-              {entry.moments && (
-                  <div className="moments-panel" id={momentsId}>
-                    <div className="moments-polaroids">
-                      {entry.moments.map((moment, index) => (
-                        <figure
-                          className={`moment-polaroid moment-${index + 1} ${moment.kind === 'video' ? 'is-video' : ''}`}
-                          key={moment.title}
-                        >
-                          <div className="moment-image">
-                            {'placeholder' in moment ? (
-                              <span className="moment-placeholder">{moment.placeholder}</span>
-                            ) : (
-                              <img src={entry.logo} alt="" />
-                            )}
-                            {moment.kind === 'video' && !('placeholder' in moment) && (
-                              <span className="moment-play" aria-hidden="true"><span /></span>
-                            )}
-                          </div>
-                          <figcaption>
-                            <strong>{moment.title}</strong>
-                            <small>{moment.caption}</small>
-                          </figcaption>
-                        </figure>
-                      ))}
-                    </div>
-                  </div>
-              )}
             </article>
-            );
-          })}
+          ))}
         </div>
       </div>
     </section>
@@ -649,26 +739,57 @@ function ExperienceLog() {
 }
 
 function Person() {
+  const [personalPhotoIndex, setPersonalPhotoIndex] = useState(0);
+  const showPreviousPhoto = () => {
+    setPersonalPhotoIndex((current) => (current - 1 + PERSONAL_PHOTOS.length) % PERSONAL_PHOTOS.length);
+  };
+  const showNextPhoto = () => {
+    setPersonalPhotoIndex((current) => (current + 1) % PERSONAL_PHOTOS.length);
+  };
+
   return (
     <section className="person-section section-shell" id="personal">
-      <div className="person-copy">
-        <span className="section-index">04</span>
-        <h2>Systems are only half the story.</h2>
-        <p>
-          I’m passionate about building resilient, scalable software, learning new AI tools, and bringing people
-          together in tech. I founded U of T’s first Claude Builder Club with sponsorship from Anthropic.
-        </p>
-        <p>
-          When I step away from a debugger, I gravitate toward places where the signal drops: coastlines, trails, and big trees.
-        </p>
+      <div className="experience-header person-section-header">
+        <h2>Who I am</h2>
       </div>
-      <div className="current-board">
-        <div className="board-title"><Boxes size={18} /> PERSONAL INDEX <span>living shelf</span></div>
-        <div className="board-row"><small>on repeat</small><strong>lo-fi for deep work and late-night builds</strong></div>
-        <div className="board-row"><small>camera roll</small><strong>Lake Tahoe, coastlines, and big trees</strong></div>
-        <div className="board-row"><small>recently</small><strong>Shopify Summit</strong></div>
-        <div className="board-row"><small>community</small><strong>Claude Builder Club @ UofT</strong></div>
-        <div className="board-note">A future home for playlists, photo sets, and field notes from rooms full of builders.</div>
+      <div className="person-layout">
+        <div className="personal-card-carousel" aria-label="A few things I love outside of work">
+          <div className="personal-card-stack">
+            {PERSONAL_PHOTOS.map((photo, index) => {
+              const offset = (index - personalPhotoIndex + PERSONAL_PHOTOS.length) % PERSONAL_PHOTOS.length;
+              if (offset > 2) return null;
+
+              return (
+                <figure
+                  className="personal-profile-card"
+                  data-offset={offset}
+                  aria-hidden={offset !== 0}
+                  key={photo.src}
+                >
+                  <img src={photo.src} alt={offset === 0 ? photo.alt : ''} loading="lazy" decoding="async" />
+                </figure>
+              );
+            })}
+          </div>
+          <button className="personal-card-control personal-card-previous" type="button" onClick={showPreviousPhoto} aria-label="Show previous personal photo">
+            <ChevronLeft size={22} aria-hidden="true" />
+          </button>
+          <button className="personal-card-control personal-card-next" type="button" onClick={showNextPhoto} aria-label="Show next personal photo">
+            <ChevronRight size={22} aria-hidden="true" />
+          </button>
+          <span className="personal-card-counter" aria-live="polite">
+            {String(personalPhotoIndex + 1).padStart(2, '0')} / {String(PERSONAL_PHOTOS.length).padStart(2, '0')}
+          </span>
+        </div>
+        <div className="person-copy">
+          <p>
+            When I’m not building, I gravitate toward nature, food (naturally), sports, and photography. My current
+            obsessions are running, climbing, and lifting.
+          </p>
+          <p>
+            And every so often, I circle right back to being geeky—usually tinkering with something that moves.
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -677,14 +798,12 @@ function Person() {
 function Contact() {
   return (
     <section className="contact section-shell" id="contact">
-      <div>
-        <span className="eyebrow">OPEN CHANNEL</span>
-        <h2>Let’s talk about systems, AI infrastructure, or a project you can’t stop thinking about.</h2>
-      </div>
+      <h2>Let’s Chat!</h2>
       <div className="contact-actions">
-        <a className="button button-light" href="mailto:tasfia.ara@mail.utoronto.ca"><Mail size={17} /> Email Tasfia</a>
-        <a className="social-link" href="https://linkedin.com/in/tasfia-ara/" target="_blank" rel="noreferrer" aria-label="Tasfia on LinkedIn"><Linkedin size={19} /></a>
-        <a className="social-link" href="https://github.com/Tasfia-Ara" target="_blank" rel="noreferrer" aria-label="Tasfia on GitHub"><Github size={19} /></a>
+        <a className="contact-link" href="mailto:tasfia.ara@mail.utoronto.ca"><Mail size={17} /> Email</a>
+        <a className="contact-link" href="https://linkedin.com/in/tasfia-ara/" target="_blank" rel="noreferrer"><Linkedin size={17} /> LinkedIn</a>
+        <a className="contact-link" href="https://github.com/Tasfia-Ara" target="_blank" rel="noreferrer"><Github size={17} /> GitHub</a>
+        <a className="contact-link" href="https://drive.google.com/file/d/1fou4pVJ727LdWbpp8GcsLhEqYqUbDmx1/view?usp=sharing" target="_blank" rel="noreferrer"><FileText size={17} /> Résumé</a>
       </div>
     </section>
   );
@@ -694,12 +813,12 @@ function App() {
   return (
     <>
       <Header />
+      <InterestCarousel />
       <main>
         <Hero />
+        <DeveloperSnapshot />
         <ExperienceLog />
         <Systems />
-        <Toolkit />
-        <SignalStrip />
         <Person />
         <Contact />
       </main>
