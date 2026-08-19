@@ -1,86 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tasfia Ara | Software Engineer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-paper: #fdfcfb;
-            --accent-purple: #6366f1;
-            --text-primary: #1a1a1a;
-            --text-secondary: #6b7280;
-            --border-color: rgba(0, 0, 0, 0.08);
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-paper);
-            color: var(--text-primary);
-            -webkit-font-smoothing: antialiased;
-            background-image: 
-                radial-gradient(circle at 1px 1px, var(--border-color) 1px, transparent 0);
-            background-size: 32px 32px;
-        }
-        .mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .glass {
-            background: rgba(255, 252, 250, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-        }
-        .dev-card {
-            background: white;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .dev-card:hover {
-            border-color: var(--accent-purple);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.1);
-        }
-        .text-gradient {
-            background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .profile-frame {
-            position: relative;
-            background: white;
-            padding: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 50px -15px rgba(0,0,0,0.08);
-        }
-        .profile-frame::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border: 1px solid rgba(99, 102, 241, 0.1);
-            pointer-events: none;
-        }
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #e5e7eb;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #d1d5db;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
-        }
-    </style>
-</head>
-<body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f1eee5" />
+    <meta name="description" content="Tasfia Ara is a backend engineer interested in AI infrastructure, reliable systems, and the machinery behind intelligent products." />
+    <meta property="og:title" content="Tasfia Ara — Backend Engineer & Systems Thinker" />
+    <meta property="og:description" content="Selected systems, technical field notes, and the person behind the work." />
+    <meta property="og:type" content="website" />
+    <title>Tasfia Ara — Backend Engineer & Systems Thinker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-</body>
+  </body>
 </html>

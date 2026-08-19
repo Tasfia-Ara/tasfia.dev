@@ -1,334 +1,834 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { 
-  Github, 
-  Linkedin, 
-  ChevronRight, 
+import {
+  ArrowDown,
   ArrowUpRight,
-  Hash,
-  GitBranch,
-  Layers,
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  FileText,
+  Github,
+  Linkedin,
   Mail,
-  ExternalLink
+  Sparkles,
 } from 'lucide-react';
-import { PROJECTS, EXPERIENCES, SKILLS } from './constants';
+import './styles.css';
 
-const Navbar = ({ isExplored }: { isExplored: boolean }) => {
-  const scrollTo = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
+const HERO_WORDS = ['systems', 'models', 'communities'];
 
-  return (
-    <nav className={`fixed top-0 left-0 w-full z-50 px-6 py-5 glass flex justify-between items-center transition-all duration-700 ${isExplored ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0'}`}>
-      <div className="flex items-center gap-4">
-        <div className="w-8 h-8 rounded bg-indigo-600 flex items-center justify-center text-white mono font-bold text-xs shadow-sm">T</div>
-        <div className="text-[10px] font-bold tracking-[0.25em] text-zinc-900 uppercase mono">TASFIA.LOG</div>
-      </div>
-      <div className="hidden md:flex gap-10 text-[10px] font-bold uppercase tracking-widest text-zinc-400 mono">
-        <button onClick={() => scrollTo('projects')} className="hover:text-indigo-600 transition-colors">projects</button>
-        <button onClick={() => scrollTo('history')} className="hover:text-indigo-600 transition-colors">history</button>
-        <button onClick={() => scrollTo('stack')} className="hover:text-indigo-600 transition-colors">stack</button>
-        <button onClick={() => scrollTo('contact')} className="hover:text-indigo-600 transition-colors">contact</button>
-      </div>
-    </nav>
-  );
+type GitHubContribution = {
+  date: string;
+  count: number;
+  level: number;
 };
 
-const Hero = ({ onExplore }: { onExplore: () => void }) => (
-  <section className="min-h-screen flex items-center px-6 max-w-6xl mx-auto">
-    <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20 w-full">
-      <div className="flex-1 space-y-10 animate-in slide-in-from-left-8 duration-700">
-        <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded bg-white border border-zinc-200 mono text-[10px] font-bold text-zinc-500 uppercase">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-          system_status: seeking_2026_summer_internships
-        </div>
-        <div className="space-y-4">
-          <h1 className="text-5xl md:text-6xl font-medium tracking-tight text-zinc-800 leading-[1.1]">
-            👋 hi there, I'm <span className="text-indigo-600 font-semibold">Tasfia</span>
-          </h1>
-          <p className="text-lg md:text-xl text-zinc-500 max-w-xl leading-relaxed font-normal">
-            3rd-year CS & Stats @ UofT. Engineer focused on <span className="text-zinc-900 font-medium">ML engineering</span> and <span className="text-zinc-900 font-medium">backend systems</span>.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-4 pt-4">
-          <button 
-            onClick={onExplore}
-            className="px-8 py-4 rounded bg-zinc-900 text-white font-bold text-sm hover:bg-indigo-600 transition-all flex items-center gap-3 shadow-2xl shadow-zinc-200 active:scale-95"
-          >
-            Initialize Exploration <ChevronRight size={18} />
-          </button>
-          <div className="flex gap-2">
-            <a href="https://linkedin.com/in/tasfia-ara/" target="_blank" rel="noopener noreferrer" className="p-4 rounded border border-zinc-200 text-zinc-400 hover:text-indigo-600 transition-all bg-white hover:border-indigo-200">
-              <Linkedin size={20} />
-            </a>
-            <a href="https://github.com/Tasfia-Ara" target="_blank" rel="noopener noreferrer" className="p-4 rounded border border-zinc-200 text-zinc-400 hover:text-indigo-600 transition-all bg-white hover:border-indigo-200">
-              <Github size={20} />
-            </a>
-          </div>
-        </div>
-      </div>
+type ActivityDay = GitHubContribution & {
+  isFuture: boolean;
+};
 
-      {/* Profile picture section - commented out temporarily */}
-      {/* <div className="w-full md:w-[400px] flex-shrink-0 animate-in slide-in-from-right-8 duration-700">
-        <div className="profile-frame rounded-3xl rotate-2 group hover:rotate-0 transition-transform duration-700 shadow-2xl">
-          <div className="w-full aspect-square bg-zinc-50 rounded-2xl overflow-hidden relative">
-            <img
-              src="/profile.jpg"
-              alt="Tasfia Ara Profile"
-              className="w-full h-full object-cover grayscale brightness-105 group-hover:grayscale-0 transition-all duration-1000"
-            />
-            <div className="absolute inset-0 bg-indigo-500/5 mix-blend-multiply"></div>
-          </div>
-          <div className="mt-4 flex justify-between items-center mono text-[9px] font-bold text-zinc-400 uppercase tracking-widest px-1">
-            <span>me at Big Sur, CA (hint: I love nature!) </span>
-            <span>BUILD_V3</span>
-          </div>
-        </div>
-      </div> */}
-    </div>
-  </section>
-);
+const GITHUB_ACTIVITY_URL = 'https://github-contributions-api.jogruber.de/v4/Tasfia-Ara?y=last';
+const ACTIVITY_WEEKS = 52;
+const ACTIVITY_DAYS = 7;
+const LANGUAGES = [
+  'Python',
+  'Java',
+  'JavaScript',
+  'TypeScript',
+  'Kotlin',
+  'Swift',
+  'Ruby',
+  'SQL',
+  'C',
+  'C++',
+  'Verilog',
+  'Solidity',
+  'HTML',
+  'CSS/SCSS',
+  'Shell/Bash',
+];
+const SYSTEMS = [
+  'Distributed systems',
+  'ML infrastructure',
+  'Data + ETL pipelines',
+  'Ranking + retrieval',
+  'Recommender systems',
+  'Prediction systems',
+  'Real-time processing',
+  'Systems software',
+  'Accelerated computing',
+  'Performance engineering',
+];
+const RESPIRA_GALLERY = [
+  {
+    src: '/tasfia.dev/projects/respiracheck/team.jpg',
+    alt: 'Tasfia and her RespiraCheck teammates presenting at CUCAI 2025',
+    caption: 'The RespiraCheck team · CUCAI 2025',
+  },
+  {
+    src: '/tasfia.dev/projects/respiracheck/poster.jpg',
+    alt: 'RespiraCheck research poster presented at CUCAI 2025',
+    caption: 'Our research poster',
+  },
+  {
+    src: '/tasfia.dev/projects/respiracheck/cucai-2025.jpg',
+    alt: 'I attended CUCAI 2025 conference graphic',
+    caption: 'Canadian Undergraduate Conference in AI · 2025',
+  },
+];
+const PERSONAL_PHOTOS = [
+  {
+    src: '/tasfia.dev/about/hike.jpeg',
+    alt: 'Tasfia smiling during an autumn hike',
+  },
+  {
+    src: '/tasfia.dev/about/food.jpeg',
+    alt: 'A favourite noodle meal',
+  },
+  {
+    src: '/tasfia.dev/about/running.jpeg',
+    alt: 'Tasfia after crossing the Toronto Marathon finish line',
+  },
+  {
+    src: '/tasfia.dev/about/sunset.jpeg',
+    alt: 'A pink sunset reflected over the Toronto waterfront',
+  },
+  {
+    src: '/tasfia.dev/about/robot-car.jpeg',
+    alt: 'A small robot car being assembled on a workbench',
+  },
+];
 
-const ProjectCard: React.FC<{ project: typeof PROJECTS[0] }> = ({ project }) => (
-  <div className="dev-card group rounded-2xl overflow-hidden flex flex-col h-full bg-white">
-    <div className="h-48 overflow-hidden relative border-b border-zinc-50 grayscale group-hover:grayscale-0 transition-all duration-700">
-      <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
-      <div className="absolute top-4 left-4">
-        <div className="px-2 py-1 rounded bg-zinc-900/80 backdrop-blur-md mono text-[8px] font-bold tracking-widest uppercase text-white border border-white/10">
-          <GitBranch size={10} className="inline mr-1" /> main/{project.category === 'AI/ML' ? 'research' : 'fullstack'}
-        </div>
-      </div>
-    </div>
-    <div className="p-8 flex flex-col flex-1">
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-xl font-bold text-zinc-900">{project.title}</h3>
-        <a href={project.github} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-zinc-900 transition-colors">
-          <Github size={18} />
-        </a>
-      </div>
-      <p className="text-zinc-500 text-sm leading-relaxed mb-8 flex-1 font-medium">
-        {project.description}
-      </p>
-      <div className="flex flex-wrap gap-2 mb-8">
-        {project.tech.map(t => (
-          <span key={t} className="mono text-[9px] font-bold text-zinc-400 bg-zinc-50 px-2 py-1 rounded border border-zinc-100">
-            {t}
-          </span>
-        ))}
-      </div>
-      <a 
-        href={project.github} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="flex items-center justify-between w-full px-5 py-3 bg-zinc-50 hover:bg-zinc-900 hover:text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all"
-      >
-        View Source <ArrowUpRight size={14} />
-      </a>
-    </div>
-  </div>
-);
+const activityDateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
 
-const ExplorationView = () => {
-  const [filter, setFilter] = useState('all');
+function parseActivityDate(date: string) {
+  return new Date(`${date}T00:00:00Z`);
+}
 
-  const filteredProjects = PROJECTS.filter(p => {
-    if (filter === 'all') return true;
-    if (filter === 'ai_research') return p.category === 'AI/ML';
-    if (filter === 'fullstack') return p.category === 'Full-stack';
-    return true;
+function toActivityDate(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function buildActivityWeeks(contributions: GitHubContribution[]) {
+  const contributionsByDate = new Map(contributions.map((day) => [day.date, day]));
+  const latestContribution = contributions.at(-1);
+  const lastDate = latestContribution ? parseActivityDate(latestContribution.date) : new Date();
+  const firstSunday = new Date(lastDate);
+  firstSunday.setUTCDate(lastDate.getUTCDate() - lastDate.getUTCDay() - ((ACTIVITY_WEEKS - 1) * ACTIVITY_DAYS));
+
+  return Array.from({ length: ACTIVITY_WEEKS }, (_, weekIndex) => (
+    Array.from({ length: ACTIVITY_DAYS }, (_, dayIndex): ActivityDay => {
+      const date = new Date(firstSunday);
+      date.setUTCDate(firstSunday.getUTCDate() + (weekIndex * ACTIVITY_DAYS) + dayIndex);
+      const dateKey = toActivityDate(date);
+      const contribution = contributionsByDate.get(dateKey);
+
+      return {
+        date: dateKey,
+        count: contribution?.count ?? 0,
+        level: contribution?.level ?? 0,
+        isFuture: date > lastDate,
+      };
+    })
+  ));
+}
+
+function buildMonthLabels(weeks: ActivityDay[][]) {
+  const labels = weeks.flatMap((week, weekIndex) => {
+    const firstOfMonth = week.find((day) => parseActivityDate(day.date).getUTCDate() === 1);
+    if (!firstOfMonth && weekIndex !== 0) return [];
+
+    const labelDate = parseActivityDate(firstOfMonth?.date ?? week[0].date);
+    return [{
+      label: labelDate.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }),
+      weekIndex,
+    }];
   });
 
-  return (
-    <div className="animate-in slide-in-from-bottom-12 duration-1000 space-y-32">
-      <section id="projects" className="py-32 border-t border-zinc-100 scroll-mt-24">
-        <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-4">
-            <h2 className="mono text-[10px] font-black uppercase tracking-[0.4em] text-indigo-600">/repositories</h2>
-            <p className="text-4xl font-bold text-zinc-900 tracking-tight">projects</p>
-          </div>
-          <div className="flex gap-8 text-[10px] mono font-bold text-zinc-400 uppercase">
-            <button 
-              onClick={() => setFilter('all')}
-              className={`transition-all duration-300 pb-2 border-b-2 ${filter === 'all' ? 'text-indigo-600 border-indigo-600' : 'border-transparent hover:text-zinc-900'}`}
-            >
-              all_work
-            </button>
-            <button 
-              onClick={() => setFilter('ai_research')}
-              className={`transition-all duration-300 pb-2 border-b-2 ${filter === 'ai_research' ? 'text-indigo-600 border-indigo-600' : 'border-transparent hover:text-zinc-900'}`}
-            >
-              ai_research
-            </button>
-            <button 
-              onClick={() => setFilter('fullstack')}
-              className={`transition-all duration-300 pb-2 border-b-2 ${filter === 'fullstack' ? 'text-indigo-600 border-indigo-600' : 'border-transparent hover:text-zinc-900'}`}
-            >
-              fullstack
-            </button>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {filteredProjects.map(p => <ProjectCard key={p.id} project={p} />)}
-        </div>
-      </section>
+  return labels.length > 1 && labels[1].weekIndex - labels[0].weekIndex < 4
+    ? labels.slice(1)
+    : labels;
+}
 
-      <section id="history" className="py-32 border-t border-zinc-100 scroll-mt-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
-          <div className="lg:col-span-4 space-y-6">
-            <h2 className="mono text-[10px] font-black uppercase tracking-[0.4em] text-indigo-600">/history</h2>
-            <p className="text-4xl font-bold text-zinc-900 tracking-tight leading-snug">
-              history
-            </p>
-            <div className="p-6 bg-white border border-zinc-100 rounded-2xl shadow-sm">
-              <span className="block mono text-[10px] text-zinc-300 uppercase tracking-widest mb-2">Network</span>
-              <p className="text-sm font-medium text-zinc-600 leading-relaxed">
-                Building at the intersection of performance and intelligent automation. Currently focused on ML/Backend infrastructure.
-              </p>
+const LOG_ENTRIES = [
+  {
+    type: 'INCOMING',
+    company: 'Amazon Ads',
+    period: 'September–December 2026',
+    role: 'Software Engineering Intern · Ads Product, AI-Generated Content',
+    copy: 'Joining the Ads Product AI-generated content team to work across generative model integration and ads delivery infrastructure.',
+    logo: '/tasfia.dev/logos/amazon.png',
+    logoAlt: 'Amazon',
+    tags: ['Generative AI', 'Ads infrastructure'],
+  },
+  {
+    type: 'ENGINEERING',
+    company: 'Shopify',
+    period: 'May–August 2026',
+    role: 'Software Engineering Intern · Merchant Marketing, Ads Experience',
+    copy: (
+      <>Designed and deployed a <strong>fault-tolerant production workflow</strong> that translated live order and attribution events into <strong>deterministic billing logic</strong>, recovering <strong>$1.4M</strong> across <strong>48,000+ orders</strong> during production incidents.</>
+    ),
+    logo: '/tasfia.dev/logos/shopify.png',
+    logoAlt: 'Shopify',
+    tags: ['Kafka', 'Reliability', 'Billing'],
+    bullets: [
+      <>Built the system to support incident recovery windows spanning <strong>1–7 days</strong>, representing approximately <strong>48,000–336,000 orders</strong> at observed volume.</>,
+      <>Optimized <strong>high-throughput, low-latency data pipelines</strong> across <strong>Kafka, Sidekiq, and SQL-backed Vitess/GlobalDB</strong>, processing <strong>10M+ daily billing and attribution events</strong> with approximately <strong>one-second end-to-end latency</strong>.</>,
+      <>Engineered <strong>idempotent, exactly-once transaction processing</strong> with retry semantics, dead-letter handling, and automated reconciliation checks, maintaining <strong>financial correctness</strong> under live production traffic while preventing duplicate charges and revenue leakage.</>,
+      <>Wrote <strong>automated unit and integration tests</strong> and improved <strong>monitoring</strong>.</>,
+    ],
+  },
+  {
+    type: 'LEADERSHIP',
+    company: 'Claude Builder Club @ UofT',
+    period: 'September–December 2025',
+    role: 'President & Claude Ambassador · Partnered with Anthropic',
+    copy: (
+      <>Founded and led <strong>U of T’s first Claude Builder Club</strong>, partnering with <strong>Anthropic</strong> to grow a hands-on <strong>AI builder community</strong> on campus.</>
+    ),
+    logo: '/tasfia.dev/logos/anthropic.png',
+    logoAlt: 'Anthropic',
+    tags: ['Community', 'Workshops', 'AI builders'],
+    bullets: [
+      <>Grew a <strong>300+ member community</strong> through <strong>hackathons, engineering challenges, and workshops</strong> across AI, full-stack development, and applied ML.</>,
+      <>Designed training in <strong>prompt engineering, RAG, responsible AI evaluation, and privacy-aware deployment</strong> while leading <strong>mentorship and code reviews</strong>.</>,
+    ],
+  },
+];
+
+function Header() {
+  return (
+    <header className="site-header">
+      <a className="wordmark" href="#top" aria-label="Tasfia Ara, back to top">
+        <span className="wordmark-mark">TA</span>
+        <span>
+          <strong>Tasfia Ara</strong>
+          <small>backend + AI infrastructure</small>
+        </span>
+      </a>
+      <nav className="main-nav" aria-label="Primary navigation">
+        <a href="#top">Home</a>
+        <a href="#snapshot">Dev. Snapshot</a>
+        <a href="#logs">Experience</a>
+        <a href="#systems">Projects</a>
+        <a href="#personal">About Me</a>
+      </nav>
+      <a className="header-link" href="https://github.com/Tasfia-Ara" target="_blank" rel="noreferrer">
+        GitHub <ArrowUpRight size={14} aria-hidden="true" />
+      </a>
+    </header>
+  );
+}
+
+function InterestCarousel() {
+  return (
+    <aside className="interest-strip" aria-label="Areas Tasfia is interested in">
+      <div className="system-focus-line section-shell">
+        <span className="system-focus-label">INTERESTED IN</span>
+        <div className="system-carousel" aria-label={`Interested in: ${SYSTEMS.join(', ')}`}>
+          <div className="system-carousel-track">
+            {[false, true].map((duplicate) => (
+              <div className="system-carousel-group" aria-hidden={duplicate || undefined} key={duplicate ? 'duplicate' : 'primary'}>
+                {SYSTEMS.map((system) => <span className="system-carousel-item" key={system}>{system}</span>)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function Hero() {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [showScrollCue, setShowScrollCue] = useState(true);
+
+  useEffect(() => {
+    const rotation = window.setInterval(() => {
+      setWordIndex((current) => (current + 1) % HERO_WORDS.length);
+    }, 1800);
+
+    return () => window.clearInterval(rotation);
+  }, []);
+
+  useEffect(() => {
+    const updateScrollCue = () => setShowScrollCue(window.scrollY < 80);
+    updateScrollCue();
+    window.addEventListener('scroll', updateScrollCue, { passive: true });
+
+    return () => window.removeEventListener('scroll', updateScrollCue);
+  }, []);
+
+  return (
+    <section className="hero section-shell" id="top">
+      <div className="hero-copy">
+        <div className="eyebrow hero-status"><span className="status-dot" /> Status: Seeking Summer 2027 Internships</div>
+        <h1 className="hero-title">
+          <span className="hero-greeting">Hi, I’m Tasfia.</span>
+          <span className="hero-build-line">
+            I build <span className="hero-word-shell"><span className="hero-word" key={HERO_WORDS[wordIndex]}>{HERO_WORDS[wordIndex]}.</span></span>
+          </span>
+        </h1>
+        <p className="hero-intro">
+          I’m a fourth-year CS student at the University of Toronto focused on{' '}
+          <span className="hero-emphasis">ML engineering</span>, <span className="hero-emphasis">backend systems</span>,
+          {' '}and <span className="hero-emphasis">production infrastructure</span>. Current SWE Intern at Shopify;
+          incoming SDE Intern at Amazon for Fall 2026.
+        </p>
+        <div className="hero-connect" aria-label="Contact links">
+          <span className="hero-connect-label">Let’s connect</span>
+          <div className="hero-connect-links">
+            <a className="hero-social-link" href="https://linkedin.com/in/tasfia-ara/" target="_blank" rel="noreferrer" aria-label="Tasfia on LinkedIn">
+              <Linkedin size={18} />
+            </a>
+            <a className="hero-social-link" href="https://github.com/Tasfia-Ara" target="_blank" rel="noreferrer" aria-label="Tasfia on GitHub">
+              <Github size={18} />
+            </a>
+            <a className="hero-social-link" href="mailto:tasfia.ara@mail.utoronto.ca" aria-label="Email Tasfia">
+              <Mail size={18} />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div className="portrait-wrap">
+        <div className="portrait-card">
+          <img src="/tasfia.dev/profile.jpg" alt="Tasfia standing beside a forest stream" />
+          <div className="portrait-caption">
+            <span>the operator, off duty</span>
+            <span>Lake Tahoe, CA</span>
+          </div>
+        </div>
+        <div className="portrait-note">
+          <Sparkles size={15} /> happiest near water, trees, and a hard problem
+        </div>
+      </div>
+
+      <a
+        className={`jump-link ${showScrollCue ? '' : 'is-hidden'}`}
+        href="#logs"
+        aria-hidden={!showScrollCue}
+        tabIndex={showScrollCue ? undefined : -1}
+      >
+        <ArrowDown size={22} /> My Experience
+      </a>
+    </section>
+  );
+}
+
+function RollingNumber({ value, suffix = '', active, delay = 0 }: { value: string; suffix?: string; active: boolean; delay?: number }) {
+  return (
+    <span
+      className={`rolling-number ${active ? 'is-spinning' : ''}`}
+      role="img"
+      aria-label={`${value}${suffix}`}
+      style={{ '--metric-delay': `${delay}ms` } as React.CSSProperties}
+    >
+      <span className="rolling-number-inner" aria-hidden="true">
+        {value.split('').map((digit, index) => (
+          <span className="rolling-digit" key={`${digit}-${index}`}>
+            <span
+              className="rolling-reel"
+              style={{
+                '--roll-distance': `-${Number(digit) + 10}em`,
+                '--roll-delay': `${index * 70}ms`,
+              } as React.CSSProperties}
+            >
+              {Array.from({ length: 20 }, (_, reelIndex) => <span key={reelIndex}>{reelIndex % 10}</span>)}
+            </span>
+          </span>
+        ))}
+        {suffix && <span className="rolling-suffix">{suffix}</span>}
+      </span>
+    </span>
+  );
+}
+
+function GitHubActivity() {
+  const [contributions, setContributions] = useState<GitHubContribution[]>([]);
+  const [activityLoaded, setActivityLoaded] = useState(false);
+  const [statsVisible, setStatsVisible] = useState(false);
+  const activityRef = useRef<HTMLDivElement>(null);
+
+  const activityWeeks = useMemo(() => buildActivityWeeks(contributions), [contributions]);
+  const activityMonths = useMemo(() => buildMonthLabels(activityWeeks), [activityWeeks]);
+
+  useEffect(() => {
+    const activity = activityRef.current;
+    if (!activity) return undefined;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setStatsVisible(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStatsVisible(true);
+          observer.unobserve(activity);
+        }
+      },
+      { threshold: 0.25 },
+    );
+
+    observer.observe(activity);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(GITHUB_ACTIVITY_URL, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error('GitHub activity is unavailable');
+        return response.json();
+      })
+      .then((data: { contributions?: GitHubContribution[] }) => {
+        if (Array.isArray(data.contributions)) setContributions(data.contributions);
+      })
+      .catch((error: Error) => {
+        if (error.name !== 'AbortError') setContributions([]);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setActivityLoaded(true);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return (
+    <div className="github-activity project-activity" ref={activityRef}>
+      <div className="developer-stats">
+        <a className="dev-stat" href="https://github.com/Tasfia-Ara?tab=repositories" target="_blank" rel="noreferrer">
+          <RollingNumber value="30" active={statsVisible} delay={0} />
+          <span className="stat-label">Public repos</span>
+          <small>on GitHub</small>
+        </a>
+        <div className="dev-stat">
+          <RollingNumber value="14" suffix="+" active={statsVisible} delay={1050} />
+          <span className="stat-label">Collaborators</span>
+          <small>across public repos</small>
+        </div>
+        <div className="dev-stat">
+          <RollingNumber value="4" active={statsVisible} delay={2100} />
+          <span className="stat-label">Hackathons</span>
+          <small>
+            on <a className="stat-source-link" href="https://devpost.com/Tasfia-Ara/challenges" target="_blank" rel="noreferrer">
+              Devpost <ArrowUpRight size={10} aria-hidden="true" />
+            </a>
+          </small>
+        </div>
+        <div className="dev-stat">
+          <span className="stat-number-with-crown">
+            <Crown className="stat-crown" size={22} strokeWidth={1.7} aria-hidden="true" />
+            <RollingNumber value="1" active={statsVisible} delay={3150} />
+          </span>
+          <span className="stat-label">Hackathon wins</span>
+          <small>Toronto Bioinformatics · 2024</small>
+        </div>
+      </div>
+
+      <div className="activity-toolbar">
+        <span>PUBLIC CONTRIBUTIONS · LAST 52 WEEKS</span>
+        <a
+          className="github-activity-link"
+          href="https://github.com/Tasfia-Ara"
+          target="_blank"
+          rel="noreferrer"
+        >
+          View GitHub Profile <ArrowUpRight size={14} aria-hidden="true" />
+        </a>
+      </div>
+      <div className="activity-map">
+        <div className="activity-scroll">
+          <div className={`activity-graph ${activityLoaded ? 'is-loaded' : 'is-loading'}`}>
+            <div className="activity-months" aria-hidden="true">
+              {activityMonths.map((month) => (
+                <span key={`${month.label}-${month.weekIndex}`} style={{ gridColumnStart: month.weekIndex + 1 }}>
+                  {month.label}
+                </span>
+              ))}
+            </div>
+            <div
+              className="activity-grid"
+              role="img"
+              aria-label="Tasfia’s public GitHub contributions over the past 52 weeks"
+            >
+              {activityWeeks.map((week, weekIndex) => (
+                <div
+                  className="activity-week"
+                  key={week[0].date}
+                  style={{ '--week-index': weekIndex } as React.CSSProperties}
+                >
+                  {week.map((day) => {
+                    const formattedDate = activityDateFormatter.format(parseActivityDate(day.date));
+                    const contributionLabel = `${day.count} ${day.count === 1 ? 'contribution' : 'contributions'} · ${formattedDate}`;
+
+                    return (
+                      <span
+                        className={`activity-cell ${day.isFuture ? 'is-future' : ''}`}
+                        data-level={day.level}
+                        data-tooltip={day.isFuture ? formattedDate : contributionLabel}
+                        key={day.date}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </div>
-          <div className="lg:col-span-8 space-y-16">
-            {EXPERIENCES.map((exp) => (
-              <div key={exp.id} className="relative group pl-10 border-l border-zinc-100 hover:border-indigo-600 transition-colors duration-500 pb-12 last:pb-0">
-                <div className="absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full bg-white border-2 border-zinc-200 group-hover:border-indigo-600 transition-all duration-500"></div>
-                <div className="flex flex-col md:flex-row md:justify-between items-start mb-6 gap-2">
-                  <div>
-                    <h3 className="text-2xl font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">{exp.role}</h3>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="mono text-[11px] font-bold text-zinc-400 uppercase tracking-widest">{exp.company}</span>
-                      <span className="w-1 h-1 rounded-full bg-zinc-200"></span>
-                      <span className="mono text-[11px] text-zinc-300 font-bold">{exp.period}</span>
-                    </div>
-                  </div>
-                  <span className="text-xl p-3 bg-zinc-50 rounded-xl font-bold text-indigo-600 grayscale group-hover:grayscale-0 transition-all">
-                    {exp.logo}
-                  </span>
-                </div>
-                <ul className="space-y-4">
-                  {exp.description.map((item, i) => (
-                    <li key={i} className="text-zinc-500 text-sm leading-relaxed flex gap-4">
-                      <span className="text-indigo-300 mono font-bold">{'>>>'}</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+        </div>
+      </div>
+      <div className="language-carousel-line">
+        <span className="language-carousel-label">LANGUAGES I BUILD WITH</span>
+        <div className="language-carousel" aria-label={`Languages I build with: ${LANGUAGES.join(', ')}`}>
+          <div className="language-carousel-track">
+            {[false, true].map((duplicate) => (
+              <div className="language-carousel-group" aria-hidden={duplicate || undefined} key={duplicate ? 'duplicate' : 'primary'}>
+                {LANGUAGES.map((language) => (
+                  <span className="language-carousel-item" key={language}>{language}</span>
+                ))}
               </div>
             ))}
           </div>
         </div>
-      </section>
-
-      <section id="stack" className="py-32 border-t border-zinc-100 scroll-mt-24">
-        <div className="bg-white rounded-3xl p-12 border border-zinc-100 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 opacity-40"></div>
-          <div className="flex items-center gap-4 mb-20">
-            <Layers size={22} className="text-indigo-600" />
-            <h2 className="text-3xl font-bold tracking-tight text-zinc-900">stack</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-            {SKILLS.map(skill => (
-              <div key={skill.category} className="group">
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="w-1 h-5 bg-zinc-100 group-hover:bg-indigo-600 transition-colors"></div>
-                  <h4 className="mono text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">{skill.category}</h4>
-                </div>
-                <div className="flex flex-col gap-5">
-                  {skill.items.map(item => (
-                    <span key={item} className="text-lg font-bold text-zinc-500 hover:text-indigo-600 transition-colors flex items-center gap-3 cursor-default">
-                      <Hash size={14} className="text-zinc-100" /> {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="contact" className="py-32 border-t border-zinc-100 scroll-mt-24">
-        <div className="max-w-4xl mx-auto text-center space-y-12">
-          <div className="space-y-4">
-            <h2 className="mono text-[10px] font-black uppercase tracking-[0.4em] text-indigo-600">/outreach</h2>
-            <p className="text-4xl font-bold text-zinc-900 tracking-tight">contact</p>
-          </div>
-          <p className="text-xl text-zinc-500 leading-relaxed font-normal max-w-2xl mx-auto">
-            Currently seeking <span className="text-zinc-900 font-medium">Summer 2026 SWE Internships</span>. 
-            Open to roles in Fintech, AI infrastructure, and Backend development. Let's connect.
-          </p>
-          <div className="flex flex-col md:flex-row justify-center gap-6 pt-8">
-            <a 
-              href="mailto:tasfia.ara@mail.utoronto.ca" 
-              className="flex items-center justify-center gap-3 px-10 py-5 bg-zinc-900 text-white rounded-2xl font-bold text-sm hover:bg-indigo-600 transition-all shadow-xl active:scale-95 group"
-            >
-              <Mail size={18} className="group-hover:rotate-12 transition-transform" />
-              Send an Email
-            </a>
-            <a 
-              href="https://linkedin.com/in/tasfia-ara/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-3 px-10 py-5 bg-white border border-zinc-200 text-zinc-900 rounded-2xl font-bold text-sm hover:border-indigo-600 hover:text-indigo-600 transition-all shadow-sm active:scale-95 group"
-            >
-              <Linkedin size={18} />
-              LinkedIn Profile
-              <ExternalLink size={14} className="text-zinc-300" />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <footer className="pt-24 pb-16 flex flex-col md:flex-row justify-between items-center gap-10 border-t border-zinc-50">
-        <div className="flex items-center gap-5">
-          <div className="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center text-white mono font-bold text-sm shadow-xl">T</div>
-          <div className="space-y-1">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-900">Tasfia Ara</div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 mono">Build v2025.2.0 // Toronto</div>
-          </div>
-        </div>
-        <div className="flex gap-12 text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-400 mono">
-          <a href="https://github.com/Tasfia-Ara" target="_blank" className="hover:text-indigo-600 transition-colors">GitHub</a>
-          <a href="mailto:tasfia.ara@mail.utoronto.ca" className="hover:text-indigo-600 transition-colors">Mail</a>
-        </div>
-        <p className="mono text-[10px] text-zinc-200 font-bold uppercase tracking-widest">End_of_Transmission</p>
-      </footer>
+      </div>
     </div>
   );
-};
+}
 
-const App = () => {
-  const [isExplored, setIsExplored] = useState(false);
-  const explorationRef = useRef<HTMLDivElement>(null);
+function RespiraGallery() {
+  const [activeImage, setActiveImage] = useState(0);
+  const image = RESPIRA_GALLERY[activeImage];
 
-  const handleExplore = () => {
-    setIsExplored(true);
-    setTimeout(() => {
-      explorationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+  const showPreviousImage = () => {
+    setActiveImage((current) => (current - 1 + RESPIRA_GALLERY.length) % RESPIRA_GALLERY.length);
+  };
+
+  const showNextImage = () => {
+    setActiveImage((current) => (current + 1) % RESPIRA_GALLERY.length);
   };
 
   return (
-    <div className="min-h-screen selection:bg-indigo-100 selection:text-indigo-900 bg-[#fdfcfb]">
-      <Navbar isExplored={isExplored} />
-      
-      <main className="max-w-6xl mx-auto px-6">
-        <div className="h-screen flex flex-col justify-center">
-          <Hero onExplore={handleExplore} />
-        </div>
-        
-        {isExplored && (
-          <div ref={explorationRef}>
-            <ExplorationView />
-          </div>
+    <figure className="respira-gallery">
+      <div className={`respira-gallery-frame ${activeImage === 2 ? 'has-square-image' : ''}`}>
+        {activeImage === 2 && (
+          <span
+            className="respira-gallery-backdrop"
+            style={{ backgroundImage: `url(${image.src})` }}
+            aria-hidden="true"
+          />
         )}
-      </main>
-    </div>
+        <img className="respira-gallery-image" key={image.src} src={image.src} alt={image.alt} />
+        <button
+          className="respira-gallery-control respira-gallery-previous"
+          type="button"
+          onClick={showPreviousImage}
+          aria-label={`Show previous RespiraCheck image. Currently showing ${activeImage + 1} of ${RESPIRA_GALLERY.length}`}
+        >
+          <ChevronLeft size={18} strokeWidth={1.8} aria-hidden="true" />
+        </button>
+        <button
+          className="respira-gallery-control respira-gallery-next"
+          type="button"
+          onClick={showNextImage}
+          aria-label={`Show next RespiraCheck image. Currently showing ${activeImage + 1} of ${RESPIRA_GALLERY.length}`}
+        >
+          <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" />
+        </button>
+      </div>
+      <figcaption aria-live="polite">
+        <span>{String(activeImage + 1).padStart(2, '0')} / {String(RESPIRA_GALLERY.length).padStart(2, '0')}</span>
+        {image.caption}
+      </figcaption>
+    </figure>
   );
-};
+}
+
+function DeveloperSnapshot() {
+  return (
+    <section className="developer-snapshot section-shell section-block" id="snapshot">
+      <div className="experience-header developer-snapshot-header">
+        <h2>Developer Snapshot</h2>
+      </div>
+      <GitHubActivity />
+    </section>
+  );
+}
+
+function Systems() {
+  return (
+    <section className="section-shell section-block" id="systems">
+      <div className="experience-header project-section-header">
+        <h2>Projects I’ve worked on</h2>
+      </div>
+
+      <div className="project-showcase-list">
+        <article className="feature-system project-showcase">
+          <div className="feature-copy">
+            <div className="project-kicker">01 · APPLIED ML RESEARCH · 2025</div>
+            <h3>RespiraCheck</h3>
+            <p className="project-lede">A cough-classification system exploring accessible, non-invasive respiratory screening.</p>
+            <p>
+              We transformed cough audio into Mel spectrograms and fine-tuned a ResNet-18 on a balanced dataset of
+              8,000 samples, pairing the model with a web experience for recording or uploading a cough.
+              <span className="project-presentation-line">
+                Presented at the Canadian Undergraduate Conference in AI (CUCAI) 2025.
+              </span>
+              <a className="project-publication-link" href="https://cucai.ca/2025/papers/e1lKWJ" target="_blank" rel="noreferrer">
+                Publication: CUCAI 2025 Conference Proceedings
+              </a>
+            </p>
+            <div className="tag-list">
+              <span>Python</span><span>ResNet-18</span><span>Audio ML</span><span>Next.js</span>
+            </div>
+            <div className="project-links">
+              <a className="text-link" href="https://github.com/Tasfia-Ara/RespiraCheck" target="_blank" rel="noreferrer">
+                View repository <ArrowUpRight size={16} />
+              </a>
+              <a className="text-link" href="https://respira-check-liard.vercel.app" target="_blank" rel="noreferrer">
+                Live demo <ArrowUpRight size={16} />
+              </a>
+            </div>
+          </div>
+          <RespiraGallery />
+        </article>
+
+        <article className="feature-system project-showcase rna-card">
+          <div className="feature-copy">
+            <div className="project-kicker">02 · BIOINFORMATICS + ML · 2024</div>
+            <h3>RNA Expression Predictor</h3>
+            <p>
+              Built an ML model that predicts mouse brain cell-type expression from RNA sequences using single-nucleus RNA-seq data.{' '}
+              <a className="project-description-link" href="https://www.linkedin.com/posts/tasfia-ara_toronto-bioinformatics-hackathon-activity-7249637214454779904-25RX" target="_blank" rel="noreferrer">
+                Won 1st place at the Toronto Bioinformatics Hackathon.
+              </a>
+            </p>
+            <div className="tag-list"><span>Python</span><span>scikit-learn</span><span>Genomics</span></div>
+            <div className="project-links">
+              <a className="text-link" href="https://github.com/hackbio-ca/rna-expression-from-sequence" target="_blank" rel="noreferrer">
+                View repository <ArrowUpRight size={16} />
+              </a>
+            </div>
+          </div>
+          <figure className="project-showcase-visual rna-project-visual">
+            <span
+              className="rna-project-backdrop"
+              style={{ backgroundImage: "url('/tasfia.dev/projects/rna-expression-predictor/hackathon-win.jpg')" }}
+              aria-hidden="true"
+            />
+            <img
+              className="rna-project-image"
+              src="/tasfia.dev/projects/rna-expression-predictor/hackathon-win.jpg"
+              alt="Tasfia and her teammates celebrating their first-place win at the Toronto Bioinformatics Hackathon"
+            />
+          </figure>
+        </article>
+
+        <article className="feature-system project-showcase vistex-card">
+          <div className="feature-copy">
+            <div className="project-kicker">03 · GENERATIVE AI TOOL · 2026</div>
+            <h3>VisTeX</h3>
+            <p>A VS Code extension that turns LaTeX equations into interactive 2D and 3D visualizations, with AI suggestions and source-linked previews.</p>
+            <div className="tag-list"><span>TypeScript</span><span>VS Code</span><span>Plotly</span></div>
+            <div className="project-links">
+              <a className="text-link" href="https://github.com/xiaotong-shen/VisTeX" target="_blank" rel="noreferrer">
+                View repository <ArrowUpRight size={16} />
+              </a>
+              <a className="text-link" href="https://devpost.com/software/vistex" target="_blank" rel="noreferrer">
+                Live demo <ArrowUpRight size={16} />
+              </a>
+            </div>
+          </div>
+          <figure className="project-showcase-visual project-photo-visual">
+            <span
+              className="project-photo-backdrop"
+              style={{ backgroundImage: "url('/tasfia.dev/projects/vistex/genai-genesis-team.webp')" }}
+              aria-hidden="true"
+            />
+            <img
+              className="project-photo-image"
+              src="/tasfia.dev/projects/vistex/genai-genesis-team.webp"
+              alt="Tasfia and the VisTeX team building together at GenAI Genesis 2026"
+            />
+            <span className="metric-chip">GenAI Genesis · 2026</span>
+          </figure>
+        </article>
+
+      </div>
+    </section>
+  );
+}
+
+function ExperienceLog() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(section);
+        }
+      },
+      { threshold: 0.06, rootMargin: '0px 0px -6% 0px' },
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section
+      ref={sectionRef}
+      className={`experience-section section-block ${isVisible ? 'is-visible' : ''}`}
+      id="logs"
+    >
+      <div className="experience-inner section-shell">
+        <div className="experience-header">
+          <h2>What I’ve been up to</h2>
+        </div>
+
+        <div className="log-list">
+          {LOG_ENTRIES.map((entry) => (
+            <article className="log-entry" key={entry.company}>
+              <div className="log-rail">
+                <div className="log-logo-tile">
+                  <img className="log-logo" src={entry.logo} alt={`${entry.logoAlt} logo`} />
+                </div>
+              </div>
+              <div className="log-content">
+                <div className="log-heading-row">
+                  <h3>{entry.company}</h3>
+                  <span className="log-period">{entry.period}</span>
+                </div>
+                <p className="log-role">{entry.role}</p>
+                {entry.bullets ? (
+                  <ul className="log-bullets">
+                    {[entry.copy, ...entry.bullets].map((bullet, index) => <li key={`${entry.company}-${index}`}>{bullet}</li>)}
+                  </ul>
+                ) : (
+                  <p>{entry.copy}</p>
+                )}
+                <div className="log-tags">{entry.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+                <div className="log-meta-row">
+                  <small className="log-label">{entry.type}</small>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Person() {
+  const [personalPhotoIndex, setPersonalPhotoIndex] = useState(0);
+  const showPreviousPhoto = () => {
+    setPersonalPhotoIndex((current) => (current - 1 + PERSONAL_PHOTOS.length) % PERSONAL_PHOTOS.length);
+  };
+  const showNextPhoto = () => {
+    setPersonalPhotoIndex((current) => (current + 1) % PERSONAL_PHOTOS.length);
+  };
+
+  return (
+    <section className="person-section section-shell" id="personal">
+      <div className="experience-header person-section-header">
+        <h2>Who I am</h2>
+      </div>
+      <div className="person-layout">
+        <div className="personal-card-carousel" aria-label="A few things I love outside of work">
+          <div className="personal-card-stack">
+            {PERSONAL_PHOTOS.map((photo, index) => {
+              const offset = (index - personalPhotoIndex + PERSONAL_PHOTOS.length) % PERSONAL_PHOTOS.length;
+              if (offset > 2) return null;
+
+              return (
+                <figure
+                  className="personal-profile-card"
+                  data-offset={offset}
+                  aria-hidden={offset !== 0}
+                  key={photo.src}
+                >
+                  <img src={photo.src} alt={offset === 0 ? photo.alt : ''} loading="lazy" decoding="async" />
+                </figure>
+              );
+            })}
+          </div>
+          <button className="personal-card-control personal-card-previous" type="button" onClick={showPreviousPhoto} aria-label="Show previous personal photo">
+            <ChevronLeft size={22} aria-hidden="true" />
+          </button>
+          <button className="personal-card-control personal-card-next" type="button" onClick={showNextPhoto} aria-label="Show next personal photo">
+            <ChevronRight size={22} aria-hidden="true" />
+          </button>
+          <span className="personal-card-counter" aria-live="polite">
+            {String(personalPhotoIndex + 1).padStart(2, '0')} / {String(PERSONAL_PHOTOS.length).padStart(2, '0')}
+          </span>
+        </div>
+        <div className="person-copy">
+          <p>
+            When I’m not building, I gravitate toward nature, food (naturally), sports, and photography. My current
+            obsessions are running, climbing, and lifting.
+          </p>
+          <p>
+            And every so often, I circle right back to being geeky—usually tinkering with something that moves.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Contact() {
+  return (
+    <section className="contact section-shell" id="contact">
+      <h2>Let’s Chat!</h2>
+      <div className="contact-actions">
+        <a className="contact-link" href="mailto:tasfia.ara@mail.utoronto.ca"><Mail size={17} /> Email</a>
+        <a className="contact-link" href="https://linkedin.com/in/tasfia-ara/" target="_blank" rel="noreferrer"><Linkedin size={17} /> LinkedIn</a>
+        <a className="contact-link" href="https://github.com/Tasfia-Ara" target="_blank" rel="noreferrer"><Github size={17} /> GitHub</a>
+        <a className="contact-link" href="https://drive.google.com/file/d/1fou4pVJ727LdWbpp8GcsLhEqYqUbDmx1/view?usp=sharing" target="_blank" rel="noreferrer"><FileText size={17} /> Résumé</a>
+      </div>
+    </section>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <Header />
+      <InterestCarousel />
+      <main>
+        <Hero />
+        <DeveloperSnapshot />
+        <ExperienceLog />
+        <Systems />
+        <Person />
+        <Contact />
+      </main>
+      <footer className="site-footer section-shell">
+        <span>Tasfia Ara © 2026</span>
+        <span>Built with React + TypeScript · designed like a living system</span>
+      </footer>
+    </>
+  );
+}
 
 const container = document.getElementById('root');
-if (container) {
-  const root = createRoot(container);
-  root.render(<App />);
-}
+if (container) createRoot(container).render(<App />);
