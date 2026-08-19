@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   ArrowDown,
@@ -7,9 +7,7 @@ import {
   Github,
   Linkedin,
   Mail,
-  MapPin,
   Sparkles,
-  University,
 } from 'lucide-react';
 import './styles.css';
 
@@ -43,30 +41,129 @@ const TRACE_STEPS = [
 
 const HERO_WORDS = ['systems', 'models', 'communities'];
 
+type GitHubContribution = {
+  date: string;
+  count: number;
+  level: number;
+};
+
+type ActivityDay = GitHubContribution & {
+  isFuture: boolean;
+};
+
+const GITHUB_ACTIVITY_URL = 'https://github-contributions-api.jogruber.de/v4/Tasfia-Ara?y=last';
+const ACTIVITY_WEEKS = 52;
+const ACTIVITY_DAYS = 7;
+
+const activityDateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+function parseActivityDate(date: string) {
+  return new Date(`${date}T00:00:00Z`);
+}
+
+function toActivityDate(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function buildActivityWeeks(contributions: GitHubContribution[]) {
+  const contributionsByDate = new Map(contributions.map((day) => [day.date, day]));
+  const latestContribution = contributions.at(-1);
+  const lastDate = latestContribution ? parseActivityDate(latestContribution.date) : new Date();
+  const firstSunday = new Date(lastDate);
+  firstSunday.setUTCDate(lastDate.getUTCDate() - lastDate.getUTCDay() - ((ACTIVITY_WEEKS - 1) * ACTIVITY_DAYS));
+
+  return Array.from({ length: ACTIVITY_WEEKS }, (_, weekIndex) => (
+    Array.from({ length: ACTIVITY_DAYS }, (_, dayIndex): ActivityDay => {
+      const date = new Date(firstSunday);
+      date.setUTCDate(firstSunday.getUTCDate() + (weekIndex * ACTIVITY_DAYS) + dayIndex);
+      const dateKey = toActivityDate(date);
+      const contribution = contributionsByDate.get(dateKey);
+
+      return {
+        date: dateKey,
+        count: contribution?.count ?? 0,
+        level: contribution?.level ?? 0,
+        isFuture: date > lastDate,
+      };
+    })
+  ));
+}
+
+function buildMonthLabels(weeks: ActivityDay[][]) {
+  const labels = weeks.flatMap((week, weekIndex) => {
+    const firstOfMonth = week.find((day) => parseActivityDate(day.date).getUTCDate() === 1);
+    if (!firstOfMonth && weekIndex !== 0) return [];
+
+    const labelDate = parseActivityDate(firstOfMonth?.date ?? week[0].date);
+    return [{
+      label: labelDate.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }),
+      weekIndex,
+    }];
+  });
+
+  return labels.length > 1 && labels[1].weekIndex - labels[0].weekIndex < 4
+    ? labels.slice(1)
+    : labels;
+}
+
 const LOG_ENTRIES = [
   {
     type: 'INCOMING',
     company: 'Amazon Ads',
+    period: 'September–December 2026',
     role: 'Software Engineering Intern · Ads Product, AI-Generated Content',
     copy: 'Joining the Ads Product AI-generated content team to work across generative model integration and ads delivery infrastructure.',
     logo: '/tasfia.dev/logos/amazon.png',
     logoAlt: 'Amazon',
+    tags: ['Generative AI', 'Ads infrastructure'],
+    moments: [
+      { kind: 'photo', title: 'Amazon Ads', caption: 'Starting September 2026', placeholder: 'Coming Soon!' },
+      { kind: 'photo', title: 'Team moments', caption: 'Photos coming this fall', placeholder: 'Coming Soon!' },
+      { kind: 'video', title: 'Internship reel', caption: 'A future video slot', placeholder: 'Coming Soon!' },
+    ],
   },
   {
     type: 'ENGINEERING',
     company: 'Shopify',
+    period: 'May–August 2026',
     role: 'Software Engineering Intern · Merchant Marketing, Ads Experience',
-    copy: 'Built fault-tolerant recovery workflows and real-time Kafka pipelines for Ads billing, processing 10M+ daily events and protecting merchant revenue.',
+    copy: 'Worked on the infrastructure behind Shopify’s Ads billing and campaign spend systems, with a focus on reliability, recovery, and real-time processing.',
     logo: '/tasfia.dev/logos/shopify.png',
     logoAlt: 'Shopify',
+    tags: ['Kafka', 'Reliability', 'Billing'],
+    bullets: [
+      'Built fault-tolerant order reprocessing that recovers 10,000–100,000+ orders per cycle and protects an estimated $10M+ in merchant revenue.',
+      'Shipped Kafka and Sidekiq pipelines processing 10M+ daily billing and attribution events at approximately one-second end-to-end latency.',
+    ],
+    moments: [
+      { kind: 'photo', title: 'Team moments', caption: 'Shopify · summer 2026' },
+      { kind: 'photo', title: 'Shopify Summit', caption: 'Learning with builders' },
+      { kind: 'video', title: 'Internship reel', caption: 'A future video slot' },
+    ],
   },
   {
     type: 'LEADERSHIP',
     company: 'Claude Builder Club @ UofT',
+    period: 'September–December 2025',
     role: 'President & Claude Ambassador · Partnered with Anthropic',
-    copy: 'Led a 300+ member builder community, creating workshops, hackathons, and engineering challenges with Anthropic.',
+    copy: 'Founded and led U of T’s first Claude Builder Club, partnering with Anthropic to grow a hands-on AI builder community on campus.',
     logo: '/tasfia.dev/logos/anthropic.png',
     logoAlt: 'Anthropic',
+    tags: ['Community', 'Workshops', 'AI builders'],
+    bullets: [
+      'Grew a 300+ member community through hackathons, engineering challenges, and workshops across AI, full-stack development, and applied ML.',
+      'Designed training in prompt engineering, RAG, responsible AI evaluation, and privacy-aware deployment while leading mentorship and code reviews.',
+    ],
+    moments: [
+      { kind: 'photo', title: 'Builder nights', caption: 'Claude Builder Club @ UofT' },
+      { kind: 'photo', title: 'Workshop day', caption: 'Building with Claude' },
+      { kind: 'video', title: 'Hackathon recap', caption: 'A future video slot' },
+    ],
   },
 ];
 
@@ -102,7 +199,7 @@ function Header() {
         </span>
       </a>
       <nav className="main-nav" aria-label="Primary navigation">
-        <a href="#logs">Logs</a>
+        <a href="#logs">Experience</a>
         <a href="#systems">Systems</a>
         <a href="#toolkit">Toolkit</a>
         <a href="#personal">Personal</a>
@@ -145,15 +242,24 @@ function Hero() {
           </span>
         </h1>
         <p className="hero-intro">
-          I’m Tasfia—a backend engineer who loves figuring out how things work, building systems people can
-          rely on, and creating communities along the way.
+          I’m a fourth-year CS student at the University of Toronto focused on{' '}
+          <span className="hero-emphasis">ML engineering</span>, <span className="hero-emphasis">backend systems</span>,
+          {' '}and <span className="hero-emphasis">production infrastructure</span>. Current SWE Intern at Shopify;
+          incoming SDE Intern at Amazon for Fall 2026.
         </p>
-        <div className="hero-actions">
-          <a className="button button-quiet" href="mailto:tasfia.ara@mail.utoronto.ca">Say hello <ArrowUpRight size={16} /></a>
-        </div>
-        <div className="hero-facts" aria-label="Quick facts">
-          <span><MapPin size={15} /> Toronto, Canada</span>
-          <span><University size={15} /> University of Toronto: CS (ML/AI focus) + Mol. Biology</span>
+        <div className="hero-connect" aria-label="Contact links">
+          <span className="hero-connect-label">Let’s connect</span>
+          <div className="hero-connect-links">
+            <a className="hero-social-link" href="https://linkedin.com/in/tasfia-ara/" target="_blank" rel="noreferrer" aria-label="Tasfia on LinkedIn">
+              <Linkedin size={18} />
+            </a>
+            <a className="hero-social-link" href="https://github.com/Tasfia-Ara" target="_blank" rel="noreferrer" aria-label="Tasfia on GitHub">
+              <Github size={18} />
+            </a>
+            <a className="hero-social-link" href="mailto:tasfia.ara@mail.utoronto.ca" aria-label="Email Tasfia">
+              <Mail size={18} />
+            </a>
+          </div>
         </div>
       </div>
 
@@ -176,7 +282,7 @@ function Hero() {
         aria-hidden={!showScrollCue}
         tabIndex={showScrollCue ? undefined : -1}
       >
-        <ArrowDown size={17} /> Explore the logs
+        <ArrowDown size={22} /> My Experience
       </a>
     </section>
   );
@@ -231,6 +337,88 @@ function TraceDemo() {
   );
 }
 
+function GitHubActivity() {
+  const [contributions, setContributions] = useState<GitHubContribution[]>([]);
+  const [activityLoaded, setActivityLoaded] = useState(false);
+
+  const activityWeeks = useMemo(() => buildActivityWeeks(contributions), [contributions]);
+  const activityMonths = useMemo(() => buildMonthLabels(activityWeeks), [activityWeeks]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(GITHUB_ACTIVITY_URL, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error('GitHub activity is unavailable');
+        return response.json();
+      })
+      .then((data: { contributions?: GitHubContribution[] }) => {
+        if (Array.isArray(data.contributions)) setContributions(data.contributions);
+      })
+      .catch((error: Error) => {
+        if (error.name !== 'AbortError') setContributions([]);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setActivityLoaded(true);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return (
+    <div className="github-activity project-activity">
+      <a
+        className="github-activity-link"
+        href="https://github.com/Tasfia-Ara"
+        target="_blank"
+        rel="noreferrer"
+      >
+        View GitHub Profile <ArrowUpRight size={14} aria-hidden="true" />
+      </a>
+      <div className="activity-map">
+        <div className="activity-scroll">
+          <div className={`activity-graph ${activityLoaded ? 'is-loaded' : 'is-loading'}`}>
+            <div className="activity-months" aria-hidden="true">
+              {activityMonths.map((month) => (
+                <span key={`${month.label}-${month.weekIndex}`} style={{ gridColumnStart: month.weekIndex + 1 }}>
+                  {month.label}
+                </span>
+              ))}
+            </div>
+            <div
+              className="activity-grid"
+              role="img"
+              aria-label="Tasfia’s public GitHub contributions over the past 52 weeks"
+            >
+              {activityWeeks.map((week, weekIndex) => (
+                <div
+                  className="activity-week"
+                  key={week[0].date}
+                  style={{ '--week-index': weekIndex } as React.CSSProperties}
+                >
+                  {week.map((day) => {
+                    const formattedDate = activityDateFormatter.format(parseActivityDate(day.date));
+                    const contributionLabel = `${day.count} ${day.count === 1 ? 'contribution' : 'contributions'} · ${formattedDate}`;
+
+                    return (
+                      <span
+                        className={`activity-cell ${day.isFuture ? 'is-future' : ''}`}
+                        data-level={day.level}
+                        data-tooltip={day.isFuture ? formattedDate : contributionLabel}
+                        key={day.date}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Systems() {
   return (
     <section className="section-shell section-block" id="systems">
@@ -238,6 +426,8 @@ function Systems() {
         <div><span className="section-index">02</span><p>Selected systems</p></div>
         <h2>Projects are easier to trust when you can see the decisions inside them.</h2>
       </div>
+
+      <GitHubActivity />
 
       <article className="feature-system">
         <div className="feature-copy">
@@ -327,26 +517,132 @@ function Toolkit() {
 }
 
 function ExperienceLog() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(section);
+        }
+      },
+      { threshold: 0.06, rootMargin: '0px 0px -6% 0px' },
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="section-shell section-block" id="logs">
-      <div className="section-heading compact">
-        <div><span className="section-index">01</span><p>Experience log</p></div>
-        <h2>Where I’ve been building.</h2>
-      </div>
-      <div className="log-list">
-        {LOG_ENTRIES.map((entry) => (
-          <article className="log-entry" key={entry.company}>
-            <div className="log-logo-tile">
-              <img className="log-logo" src={entry.logo} alt={`${entry.logoAlt} logo`} />
-            </div>
-            <div className="log-content">
-              <h3>{entry.company}</h3>
-              <p className="log-role">{entry.role}</p>
-              <p>{entry.copy}</p>
-              <small className="log-label">{entry.type}</small>
-            </div>
-          </article>
-        ))}
+    <section
+      ref={sectionRef}
+      className={`experience-section section-block ${isVisible ? 'is-visible' : ''}`}
+      id="logs"
+    >
+      <div className="experience-inner section-shell">
+        <div className="experience-header">
+          <h2>What I’ve been up to</h2>
+        </div>
+
+        <div className="log-list" onClick={() => setExpandedEntry(null)}>
+          {LOG_ENTRIES.map((entry) => {
+            const momentsId = `${entry.company.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-moments`;
+            const isExpanded = expandedEntry === entry.company;
+
+            return (
+            <article
+              className={`log-entry ${entry.moments ? 'has-moments' : ''} ${isExpanded ? 'is-expanded' : ''}`}
+              key={entry.company}
+              onClick={entry.moments ? (event) => {
+                event.stopPropagation();
+                setExpandedEntry(isExpanded ? null : entry.company);
+              } : undefined}
+            >
+              <div className="log-rail">
+                <div className="log-logo-tile">
+                  <img className="log-logo" src={entry.logo} alt={`${entry.logoAlt} logo`} />
+                </div>
+              </div>
+              <div className="log-content">
+                <div className="log-heading-row">
+                  <h3>{entry.company}</h3>
+                  <span className="log-period">{entry.period}</span>
+                </div>
+                <p className="log-role">{entry.role}</p>
+                {entry.bullets ? (
+                  <ul className="log-bullets">
+                    {[entry.copy, ...entry.bullets].map((bullet) => <li key={bullet}>{bullet}</li>)}
+                  </ul>
+                ) : (
+                  <p>{entry.copy}</p>
+                )}
+                <div className="log-tags">{entry.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+                <div className="log-meta-row">
+                  <small className="log-label">{entry.type}</small>
+                  {entry.moments && (
+                    <button
+                      className="moments-hint"
+                      type="button"
+                      aria-expanded={isExpanded}
+                      aria-controls={momentsId}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setExpandedEntry(isExpanded ? null : entry.company);
+                      }}
+                    >
+                      <span className="moments-copy-desktop">
+                        {isExpanded ? 'Snapshots pinned · click to close' : `${entry.moments.length} snapshots · hover or click`}
+                      </span>
+                      <span className="moments-copy-mobile">
+                        {isExpanded ? 'Snapshots open · tap to close' : `${entry.moments.length} snapshots · tap to open`}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {entry.moments && (
+                  <div className="moments-panel" id={momentsId}>
+                    <div className="moments-polaroids">
+                      {entry.moments.map((moment, index) => (
+                        <figure
+                          className={`moment-polaroid moment-${index + 1} ${moment.kind === 'video' ? 'is-video' : ''}`}
+                          key={moment.title}
+                        >
+                          <div className="moment-image">
+                            {'placeholder' in moment ? (
+                              <span className="moment-placeholder">{moment.placeholder}</span>
+                            ) : (
+                              <img src={entry.logo} alt="" />
+                            )}
+                            {moment.kind === 'video' && !('placeholder' in moment) && (
+                              <span className="moment-play" aria-hidden="true"><span /></span>
+                            )}
+                          </div>
+                          <figcaption>
+                            <strong>{moment.title}</strong>
+                            <small>{moment.caption}</small>
+                          </figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                  </div>
+              )}
+            </article>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -359,8 +655,8 @@ function Person() {
         <span className="section-index">04</span>
         <h2>Systems are only half the story.</h2>
         <p>
-          I like building things that help people understand something difficult—whether that means making a codebase
-          less intimidating, mentoring a first-time builder, or organizing a room full of curious students.
+          I’m passionate about building resilient, scalable software, learning new AI tools, and bringing people
+          together in tech. I founded U of T’s first Claude Builder Club with sponsorship from Anthropic.
         </p>
         <p>
           When I step away from a debugger, I gravitate toward places where the signal drops: coastlines, trails, and big trees.
